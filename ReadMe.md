@@ -124,6 +124,8 @@
 
 QQ咨询群：580477436
 
+ArCall技术交流群：597181019
+
 咨询邮箱：[hi@dync.cc](mailto:hi@dync.cc)
 
 技术问题：[开发者论坛](https://bbs.anyrtc.io/)
