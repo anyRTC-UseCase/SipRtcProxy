@@ -66,7 +66,11 @@
 
    再次anyRTC还提供[ArCall](https://github.com/anyRTC-UseCase/ARCall)开源客户端项目，实现的是：Web，Android，iOS，小程序，SIP座机，PSTN电话，手机互通；绝非Demo级开源项目可比。
 
-   
+ - 为何采用C++ 作为开发语言
+
+   C++是性能的保障，作为网关我们需要考虑大并发，性能压榨及资源消耗等等因素；
+
+   核心功能使用C++语言，业务部分用户可自行选择相应语言进行开发。
 
    
 
