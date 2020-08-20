@@ -104,7 +104,23 @@
 - 被叫设置的呼叫邀请响应 response 的字符串长度：8 KB，格式为 UTF-8。
 - 呼叫邀请的 channel ID 仅用于与老信令互通时设置。设置的 channel ID 必须与老信令 SDK 设置相同才能实现互通。字符串长度：64 字节，格式为 UTF-8。
 
-### 三，常见问题
+### 三，如何运行
+
+1，Windows 7 +
+
+​	双击：SipRtcProxy.sln ，直接运行
+
+​	项目是VS2017创建，VS2015，VS2019可自行验证。
+
+2，Linux - Centos7.0 + 
+
+​	下载代码到本地：Git clone https://github.com/anyRTC-UseCase/SipRtcProxy.git 
+
+​	进入项目目录
+
+​	执行：make
+
+### 四，常见问题
 
 详见[常见问题](https://docs.anyrtc.io/platforms/docs/platforms/FAQ/faq)。
 
@@ -118,13 +134,13 @@
 
 > [anyRTC](https://www.anyrtc.io)为初创企业提供一对一专属客服，为客户提供专业、认真的服务，及时解答您的疑惑。并为客户提供专属技术指导，更快上手，轻松上线！
 
-### 四，联系我们
+### 五，联系我们
 
 联系电话：021-65650071
 
 QQ咨询群：580477436
 
-ArCall技术交流群：597181019
+ArCall技术交流群：
 
 咨询邮箱：[hi@dync.cc](mailto:hi@dync.cc)
 
