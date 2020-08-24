@@ -142,3 +142,26 @@ int XSplitChar(const std::string& source, char delimiter,
 	fields->push_back(source.substr(last, source.length() - last));
 	return fields->size();
 }
+
+void XGetRandomStr(std::string&sRandStr, int len) {
+	//∫¡√Î
+	struct timeb time_seed;
+	ftime(&time_seed);
+	srand(time_seed.time * 1000 + time_seed.millitm);
+
+	for (int i = 0; i < len; ++i) {
+		switch (rand() % 3) {
+		case 1:
+			sRandStr += ('A' + rand() % 26);
+			break;
+		case 2:
+			sRandStr += ('a' + rand() % 26);
+			break;
+		default:
+			sRandStr += ('0' + rand() % 10);
+			break;
+
+		}
+
+	}
+}

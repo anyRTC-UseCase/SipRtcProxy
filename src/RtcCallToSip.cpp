@@ -15,15 +15,26 @@
 RtcCallToSip::RtcCallToSip(RtcCallToSipEvent&callback)
 	: sip_call_(NULL)
 	, callback_(callback)
+	, rtm_channel_(NULL)
+	, rtm_chan_check_memsize_time_(0)
 	, task_started_(false)
+	, b_conference_(false)
 {
 	
 }
 RtcCallToSip::~RtcCallToSip(void)
 {
 	assert(sip_call_ == NULL);
+	assert(rtm_channel_ == NULL);
 }
 
+void RtcCallToSip::SetIChannel(ARM::IChannel*rtmChannel)
+{
+	assert(rtm_channel_ == NULL);
+	b_conference_ = true;	// P2P不会加入频道，只有会议才会加入频道
+	rtm_channel_ = rtmChannel;
+	rtm_chan_check_memsize_time_ = XGetUtcTimestamp() + 60000;	// 1 minute later
+}
 void RtcCallToSip::InitSipAccount(const std::string&strSvrIp, int nPort, const std::string&strAccount, const std::string&strPwd)
 {
 	str_sip_svr_ = strSvrIp;
@@ -40,6 +51,10 @@ void RtcCallToSip::StartTask(const std::string&strAppId, const std::string&strCh
 	str_sip_data_ = strSipData;
 
 	RtcCall::JoinRtc(strAppId, strChanId, strSipNumber);
+
+	if (rtm_channel_ != NULL) {
+		rtm_channel_->join();
+	}
 }
 void RtcCallToSip::StopTask()
 {
@@ -52,7 +67,11 @@ void RtcCallToSip::StopTask()
 		sip_call_ = NULL;
 	}
 
-	
+	if (rtm_channel_ != NULL) {
+		rtm_channel_->leave();
+		rtm_channel_->release();
+		rtm_channel_ = NULL;
+	}
 }
 
 //* For RtcCall
@@ -100,6 +119,31 @@ void RtcCallToSip::OnCallAudioData(const char*pData, int nLen, int nSampleHz, in
 
 		bufferSize -= aFrame10Ms;
 		bufferUsed += aFrame10Ms;
+	}
+}
+
+//* For ARM::IChannelEventHandler
+void RtcCallToSip::onJoinSuccess()
+{
+
+}
+void RtcCallToSip::onJoinFailure(ARM::JOIN_CHANNEL_ERR errorCode)
+{
+	rtm_chan_check_memsize_time_ = 0;
+	callback_.OnRtcCallToSipClosed(str_caller_id_, -100);
+}
+void RtcCallToSip::onLeave(ARM::LEAVE_CHANNEL_ERR errorCode)
+{
+	rtm_chan_check_memsize_time_ = 0;
+	callback_.OnRtcCallToSipClosed(str_caller_id_, -101);
+}
+void RtcCallToSip::onMemberCountUpdated(int memberCount)
+{// 由于是服务端，没有主动挂断按钮可操作，所以需要对频道内人员数进行判断。当频道内只剩自己一个人时则退出频道
+	if (rtm_chan_check_memsize_time_ != 0 && rtm_chan_check_memsize_time_ <= XGetUtcTimestamp()) {
+		if (memberCount <= 1) {
+			rtm_chan_check_memsize_time_ = 0;
+			callback_.OnRtcCallToSipClosed(str_caller_id_, -102);
+		}
 	}
 }
 

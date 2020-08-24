@@ -27,5 +27,6 @@ uint32_t XGenerateSSRC(void);
 void XSleep(uint32_t ulMS);
 
 int XSplitChar(const std::string& source, char delimiter,std::vector<std::string>* fields);
+void XGetRandomStr(std::string&sRandStr, int len);
 
 #endif 

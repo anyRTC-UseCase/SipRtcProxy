@@ -141,9 +141,12 @@ void SipRtcMgr::OnSipIncomingCall(int callId, const std::string&strFromSipId, co
 {
 	XAutoLock l(cs_sip_call_to_rtc_);
 	if (map_sip_call_to_rtc_.find(callId) == map_sip_call_to_rtc_.end()) {
+		std::string strChanId ;
+		XGetRandomStr(strChanId, 9);
+
 		SipCallToRtc* sipCallToRtc = new SipCallToRtc(callId, sip_proxy_);
 		sipCallToRtc->SetCalleeId(strToSipId);
-		sipCallToRtc->StartTask(str_rtc_rtm_app_id_, strFromSipId, strFromSipId);
+		sipCallToRtc->StartTask(str_rtc_rtm_app_id_, strChanId, strFromSipId);
 
 		ARM::ILocalCallInvitation* localInv = rtm_call_mgr_->createLocalCallInvitation(strToSipId.c_str());
 		rapidjson::Document		jsonDoc;
@@ -152,7 +155,7 @@ void SipRtcMgr::OnSipIncomingCall(int callId, const std::string&strFromSipId, co
 		jsonDoc.SetObject();
 		jsonDoc.AddMember("Mode", 1, jsonDoc.GetAllocator());
 		jsonDoc.AddMember("Conference", 0, jsonDoc.GetAllocator());
-		jsonDoc.AddMember("ChanId", strFromSipId.c_str(), jsonDoc.GetAllocator());
+		jsonDoc.AddMember("ChanId", strChanId.c_str(), jsonDoc.GetAllocator());
 		jsonDoc.AddMember("SipData", strCusData.c_str(), jsonDoc.GetAllocator());
 		jsonDoc.Accept(jsonWriter);
 		localInv->setContent(jsonStr.GetString());
@@ -287,6 +290,10 @@ void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInv
 				newCall = true;
 				RtcCallToSip* rtcCallToSip = new RtcCallToSip(*this);
 				rtcCallToSip->SetCallerId(remoteInvitation->getCallerId());
+				if (bConference) {
+					ARM::IChannel*rtmChann = rtm_service_->createChannel(strChanId, rtcCallToSip);
+					rtcCallToSip->SetIChannel(rtmChann);
+				}
 				InitRtcCallToSip(remoteInvitation->getCallerId(), strChanId, strSipAccount, strSipData);
 
 				map_rtc_call_to_sip_[remoteInvitation->getCallerId()] = rtcCallToSip;
@@ -306,10 +313,12 @@ void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInv
 			remoteInvitation->setResponse(jsonStr.GetString());
 
 			rtm_call_mgr_->acceptRemoteInvitation(remoteInvitation);
-			long long reqId = 0;
-			const char* peerIds[1];
-			peerIds[0] = remoteInvitation->getCallerId();
-			rtm_service_->subscribePeersOnlineStatus(peerIds, 1, reqId);
+			if (!bConference) {//* 只有P2P呼叫时才需要订阅对方的在线状态
+				long long reqId = 0;
+				const char* peerIds[1];
+				peerIds[0] = remoteInvitation->getCallerId();
+				rtm_service_->subscribePeersOnlineStatus(peerIds, 1, reqId);
+			}
 		}
 		else {
 			rtm_call_mgr_->refuseRemoteInvitation(remoteInvitation);
@@ -398,19 +407,21 @@ void SipRtcMgr::ReleaseSipCallToRtc(int callId, SipCallToRtc* rtcCallToSip)
 void SipRtcMgr::EndRtcCallToSip(const std::string&strCallerId)
 {
 	bool bFindPeer = false;
+	bool bConference = false;
 	std::string strSipAccount;
 	{
 		XAutoLock l(cs_rtc_call_to_sip_);
 		if (map_rtc_call_to_sip_.find(strCallerId) != map_rtc_call_to_sip_.end()) {
 			bFindPeer = true;
 			RtcCallToSip* rtcCallToSip = map_rtc_call_to_sip_[strCallerId];
+			bConference = rtcCallToSip->IsConference();
 			strSipAccount = rtcCallToSip->SipAccount();
 			ReleaseRtcCallToSip(rtcCallToSip);
 
 			map_rtc_call_to_sip_.erase(strCallerId);
 		}
 	}
-	if (bFindPeer) {
+	if (bFindPeer && !bConference) {
 		long long reqId = 0;
 		const char* peerIds[1];
 		peerIds[0] = strCallerId.c_str();
@@ -459,11 +470,21 @@ void SipRtcMgr::ProcessMgrEvent()
 			const std::string&strChanId = mgrEvent->mapStr["ChanId"];
 			const std::string&strSipAccount = mgrEvent->mapStr["SipAccount"];
 			const std::string&strSipData = mgrEvent->mapStr["SipData"];
+			std::string strSipNumber = str_ivr_sip_account_;
+			if (strSipData.size() > 0) {
+				rapidjson::Document		jsonReqDoc;
+				JsonStr sprCopy(strSipData.c_str(), strSipData.length());
+				if (!jsonReqDoc.ParseInsitu<0>(sprCopy.Ptr).HasParseError()) {
+					if (HasJsonStr(jsonReqDoc, "SipNumber")) {
+						strSipNumber = GetJsonStr(jsonReqDoc, "SipNumber", F_AT);
+					}
+				}
+			}
 			XAutoLock l(cs_rtc_call_to_sip_);
 			if (map_rtc_call_to_sip_.find(strCallerId) != map_rtc_call_to_sip_.end()) {
 				RtcCallToSip* rtcCallToSip = map_rtc_call_to_sip_[strCallerId];
 				rtcCallToSip->InitSipAccount(str_sip_svr_ip_, n_sip_svr_port_, strSipAccount, str_sip_password_);
-				rtcCallToSip->StartTask(str_rtc_rtm_app_id_.c_str(), strChanId, str_ivr_sip_account_, strSipData.c_str());
+				rtcCallToSip->StartTask(str_rtc_rtm_app_id_.c_str(), strChanId, strSipNumber, strSipData.c_str());
 			}
 			else {
 				// 呼叫已销毁，需要释放Sip账号
