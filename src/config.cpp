@@ -1,16 +1,14 @@
-///////////////////////////////////////////////////////////
-//  Copyright (c) 2014
-//
-//    FileName:   config.cpp
-//
-//    Description:
-//
-//    Created:    Mon Jun  9 15:11:05 2014
-//    Revision:   Revision: 1.0
-//    Compiler:   g++
-//
-///////////////////////////////////////////////////////////
-
+/*
+ *  Copyright (c) 2020 The anyRTC project authors. All Rights Reserved.
+ *
+ *  Website: https://www.anyrtc.io for more details.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ */
 #include "config.h"
 #include <stdlib.h> // strtol
 #include <limits.h>	// LLONG_MIN LLONG_MAX

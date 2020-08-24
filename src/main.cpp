@@ -1,6 +1,14 @@
-﻿// SipRtcProxy.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
-//
-
+﻿/*
+ *  Copyright (c) 2020 The anyRTC project authors. All Rights Reserved.
+ *
+ *  Website: https://www.anyrtc.io for more details.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ */
 #include <iostream>
 #include "config.h"
 #include "XUtil.h"
@@ -39,13 +47,15 @@ int main(int argc, char*argv[])
 			strSipSvrIp = strSvr;
 		}
 		if (!sipRtcMgr.SetSipAccount(strSipSvrIp.c_str(), nSipPort, strAccPrefix.c_str(), strAccRule.c_str(), strAccPassword.c_str()))
-		{
+		{// 配置sip账号，用于RtcToSip呼叫
+			sipRtcMgr.StopAll();
 			return -1;
 		}
 
+		// Sip库初始化
 		SipCall::Init();
 
-		if (conf.GetIntVal("proxy", "on") != 0) {
+		if (conf.GetIntVal("proxy", "on") != 0) {// SipProxy - 打开
 			std::string strProxyAcc = conf.GetValue("proxy", "account");
 			std::string strProxyPwd = conf.GetValue("proxy", "pwd");
 			sipRtcMgr.StartSipProxy(strSipSvrIp, strProxyAcc, strProxyPwd);
@@ -56,15 +66,16 @@ int main(int argc, char*argv[])
 	sipRtcMgr.SetRtcSvrPort(conf.GetValue("rtc", "ip"), conf.GetIntVal("rtc", "port"));
 	sipRtcMgr.SetRtmSvrPort(conf.GetValue("rtm", "ip"), conf.GetIntVal("rtm", "port"));
 
+	//* 初始化Rtc推拉流库
 	initARtSEngine();
 
-	if (conf.GetIntVal("ivr", "on") != 0) {
+	if (conf.GetIntVal("ivr", "on") != 0) {// IVR - 开启
 		sipRtcMgr.StartIvr(conf.GetValue("ivr", "rtm_account"), conf.GetValue("ivr", "sip_account"));
 	}
 	
 
 	while (1)
-	{
+	{// 主线程
 		if (!sipRtcMgr.ProcessMsg()) {
 			break;
 		}

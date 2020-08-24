@@ -18,6 +18,33 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\config.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\RtcCall.cpp" />
+    <ClCompile Include="src\RtcCallToSip.cpp" />
+    <ClCompile Include="src\SipCallToRtc.cpp" />
+    <ClCompile Include="src\SipRtcMgr.cpp" />
+    <ClCompile Include="src\SipRtcStats.cpp" />
+    <ClCompile Include="src\Timer10Ms.cpp" />
+    <ClCompile Include="src\XAutoLock.cpp" />
+    <ClCompile Include="src\XCritSec.cpp" />
+    <ClCompile Include="src\XThreadBase.cpp" />
+    <ClCompile Include="src\XUtil.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\config.h" />
+    <ClInclude Include="src\RtcCall.h" />
+    <ClInclude Include="src\RtcCallToSip.h" />
+    <ClInclude Include="src\SipCallToRtc.h" />
+    <ClInclude Include="src\SipRtcMgr.h" />
+    <ClInclude Include="src\SipRtcStats.h" />
+    <ClInclude Include="src\Timer10Ms.h" />
+    <ClInclude Include="src\XAutoLock.h" />
+    <ClInclude Include="src\XCritSec.h" />
+    <ClInclude Include="src\XThreadBase.h" />
+    <ClInclude Include="src\XUtil.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{DD59E05A-AD34-446D-B78A-293BD357B9E1}</ProjectGuid>
@@ -173,33 +200,6 @@
       <Command>if exist .\dll64 (copy .\dll64\*.dll .\out\$(Configuration)\) else if exist ..\dll64 (copy ..\dll64\*.dll .\out\$(Configuration)\)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="config.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="RtcCallToSip.cpp" />
-    <ClCompile Include="RtcCall.cpp" />
-    <ClCompile Include="SipCallToRtc.cpp" />
-    <ClCompile Include="SipRtcMgr.cpp" />
-    <ClCompile Include="SipRtcStats.cpp" />
-    <ClCompile Include="Timer10Ms.cpp" />
-    <ClCompile Include="XAutoLock.cpp" />
-    <ClCompile Include="XCritSec.cpp" />
-    <ClCompile Include="XThreadBase.cpp" />
-    <ClCompile Include="XUtil.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="config.h" />
-    <ClInclude Include="RtcCallToSip.h" />
-    <ClInclude Include="RtcCall.h" />
-    <ClInclude Include="SipCallToRtc.h" />
-    <ClInclude Include="SipRtcMgr.h" />
-    <ClInclude Include="SipRtcStats.h" />
-    <ClInclude Include="Timer10Ms.h" />
-    <ClInclude Include="XAutoLock.h" />
-    <ClInclude Include="XCritSec.h" />
-    <ClInclude Include="XThreadBase.h" />
-    <ClInclude Include="XUtil.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

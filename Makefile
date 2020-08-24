@@ -17,18 +17,18 @@ C++FLAGS = $(CCFLAGS)
 CFILES = 
 
 CPPFILES = \
-	./config.cpp \
-    ./main.cpp \
-    ./RtcCallToSip.cpp \
-    ./RtcCall.cpp \
-    ./SipCallToRtc.cpp \
-    ./SipRtcMgr.cpp \
-    ./SipRtcStats.cpp \
-    ./Timer10Ms.cpp \
-    ./XAutoLock.cpp \
-    ./XCritSec.cpp \
-    ./XThreadBase.cpp \
-    ./XUtil.cpp
+	./src/config.cpp \
+    ./src/main.cpp \
+    ./src/src/RtcCallToSip.cpp \
+    ./src/RtcCall.cpp \
+    ./src/SipCallToRtc.cpp \
+    ./src/SipRtcMgr.cpp \
+    ./src/SipRtcStats.cpp \
+    ./src/Timer10Ms.cpp \
+    ./src/XAutoLock.cpp \
+    ./src/XCritSec.cpp \
+    ./src/XThreadBase.cpp \
+    ./src/XUtil.cpp
 		
 CCFILES = 
 		

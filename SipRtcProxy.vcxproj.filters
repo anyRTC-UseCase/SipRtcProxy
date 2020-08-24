@@ -15,75 +15,75 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\config.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="config.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="XAutoLock.cpp">
+    <ClCompile Include="src\RtcCall.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="XCritSec.cpp">
+    <ClCompile Include="src\RtcCallToSip.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="XThreadBase.cpp">
+    <ClCompile Include="src\SipCallToRtc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="XUtil.cpp">
+    <ClCompile Include="src\SipRtcMgr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SipRtcMgr.cpp">
+    <ClCompile Include="src\SipRtcStats.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="RtcCallToSip.cpp">
+    <ClCompile Include="src\Timer10Ms.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SipRtcStats.cpp">
+    <ClCompile Include="src\XAutoLock.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Timer10Ms.cpp">
+    <ClCompile Include="src\XCritSec.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="RtcCall.cpp">
+    <ClCompile Include="src\XThreadBase.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SipCallToRtc.cpp">
+    <ClCompile Include="src\XUtil.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config.h">
+    <ClInclude Include="src\config.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="XAutoLock.h">
+    <ClInclude Include="src\RtcCall.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="XCritSec.h">
+    <ClInclude Include="src\RtcCallToSip.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="XThreadBase.h">
+    <ClInclude Include="src\SipCallToRtc.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="XUtil.h">
+    <ClInclude Include="src\SipRtcMgr.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SipRtcMgr.h">
+    <ClInclude Include="src\SipRtcStats.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="RtcCallToSip.h">
+    <ClInclude Include="src\Timer10Ms.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SipRtcStats.h">
+    <ClInclude Include="src\XAutoLock.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Timer10Ms.h">
+    <ClInclude Include="src\XCritSec.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="RtcCall.h">
+    <ClInclude Include="src\XThreadBase.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SipCallToRtc.h">
+    <ClInclude Include="src\XUtil.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
