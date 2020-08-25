@@ -141,7 +141,9 @@ void RtcCall::OnTimer10Ms(int64_t curTime64)
 //* For RtcAudEncoderEvent
 void RtcCall::OnAudioEncoderData(const char*pData, int nLen)
 {
-	rtc_chan_->send_audio_data(0, pData, nLen);
+	if (rtc_chan_ != NULL) {
+		rtc_chan_->send_audio_data(0, pData, nLen);
+	}
 }
 
 //* For AudNeqDecoderEvent

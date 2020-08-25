@@ -98,6 +98,7 @@ private:
 	void EndSipCallToRtc(const std::string&strCalleeId);
 	void ReleaseSipCallToRtc(int callId, SipCallToRtc* rtcCallToSip);
 
+	bool HasRtcChan(const std::string&strChanId);
 	void EndRtcCallToSip(const std::string&strCallerId);
 	void InitRtcCallToSip(const std::string&strCallerId, const std::string&strChanId, const std::string&strSipAccount, const std::string&strSipData);
 	void ReleaseRtcCallToSip(RtcCallToSip* rtcCallToSip);
@@ -109,6 +110,7 @@ private:
 	SipProxy			*sip_proxy_;
 	ARM::IRtmService	*rtm_service_;
 	ARM::IRtmCallManager*rtm_call_mgr_;
+	int64_t				next_check_rtc_to_sip_time_;
 
 	std::string			str_rtc_rtm_app_id_;
 	std::string			str_rtc_svr_ip_;
@@ -119,6 +121,7 @@ private:
 	std::string			str_ivr_sip_account_;
 
 private:
+	//* 主线程事件队列
 	XCritSec	cs_mgr_event_;
 	std::list< MgrEvent*>	lst_mgr_event_;
 

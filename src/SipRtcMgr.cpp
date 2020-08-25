@@ -18,11 +18,13 @@
 #include "rapidjson/stringbuffer.h"
 
 #define NullStr ""
+#define TIMER_1S 1000
 
 SipRtcMgr::SipRtcMgr(void)
 	: sip_proxy_(NULL)
 	, rtm_service_(NULL)
 	, rtm_call_mgr_(NULL)
+	, next_check_rtc_to_sip_time_(0)
 	, n_rtc_svr_port_(0)
 	, n_rtm_svr_port_(0)
 	, n_sip_svr_port_(5060)
@@ -132,6 +134,19 @@ void SipRtcMgr::StopAll()
 bool SipRtcMgr::ProcessMsg()
 {
 	ProcessMgrEvent();
+
+	if(next_check_rtc_to_sip_time_<=XGetUtcTimestamp())
+	{
+		next_check_rtc_to_sip_time_ = XGetUtcTimestamp() + TIMER_1S;
+
+		XAutoLock l(cs_rtc_call_to_sip_);
+		MapRtcCallToSip::iterator itrr = map_rtc_call_to_sip_.begin();
+		while (itrr != map_rtc_call_to_sip_.end()) {
+			RtcCallToSip* rtcCallToSip = itrr->second;
+			rtcCallToSip->DoProcess();
+			itrr++;
+		}
+	}
 	return true;
 }
 
@@ -281,6 +296,12 @@ void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInv
 			return;
 		}
 
+		if (HasRtcChan(strChanId)) {
+			remoteInvitation->setResponse("joined");
+			rtm_call_mgr_->refuseRemoteInvitation(remoteInvitation);
+			return;
+		}
+
 		bool newCall = false;
 		const std::string&strSipAccount = AllocSipAccount();
 		if (strSipAccount.length() > 0)
@@ -403,6 +424,20 @@ void SipRtcMgr::ReleaseSipCallToRtc(int callId, SipCallToRtc* rtcCallToSip)
 
 	XAutoLock l(cs_mgr_event_);
 	lst_mgr_event_.push_back(mgrEvent);
+}
+bool SipRtcMgr::HasRtcChan(const std::string&strChanId)
+{
+	XAutoLock l(cs_rtc_call_to_sip_);
+	MapRtcCallToSip::iterator itrr = map_rtc_call_to_sip_.begin();
+	while (itrr != map_rtc_call_to_sip_.end()) {
+		RtcCallToSip* rtcCallToSip = itrr->second;
+		if (rtcCallToSip->ChanId().compare(strChanId) == 0) {
+			return true;
+		}
+		itrr++;
+	}
+
+	return false;
 }
 void SipRtcMgr::EndRtcCallToSip(const std::string&strCallerId)
 {

@@ -16,9 +16,10 @@ RtcCallToSip::RtcCallToSip(RtcCallToSipEvent&callback)
 	: sip_call_(NULL)
 	, callback_(callback)
 	, rtm_channel_(NULL)
-	, rtm_chan_check_memsize_time_(0)
 	, task_started_(false)
 	, b_conference_(false)
+	, n_chan_member_size_(0)
+	, rtm_chan_check_memsize_time_(0)
 {
 	
 }
@@ -47,6 +48,7 @@ void RtcCallToSip::StartTask(const std::string&strAppId, const std::string&strCh
 {
 	assert(sip_call_ != NULL);
 	task_started_ = true;
+	str_chan_id_ = strChanId;
 	str_sip_number_ = strSipNumber;
 	str_sip_data_ = strSipData;
 
@@ -55,10 +57,13 @@ void RtcCallToSip::StartTask(const std::string&strAppId, const std::string&strCh
 	if (rtm_channel_ != NULL) {
 		rtm_channel_->join();
 	}
+
+	aud_enc_->Init(aud_rtc_sample_hz_, aud_rtc_channels_, 24000, false);
 }
 void RtcCallToSip::StopTask()
 {
 	task_started_ = false;
+	aud_enc_->DeInit();
 	RtcCall::LeaveRtc();
 
 	if (sip_call_ != NULL) {
@@ -71,6 +76,16 @@ void RtcCallToSip::StopTask()
 		rtm_channel_->leave();
 		rtm_channel_->release();
 		rtm_channel_ = NULL;
+	}
+}
+
+void RtcCallToSip::DoProcess()
+{
+	if (rtm_chan_check_memsize_time_ != 0 && rtm_chan_check_memsize_time_ <= XGetUtcTimestamp()) {
+		if (n_chan_member_size_ <= 1) {
+			rtm_chan_check_memsize_time_ = 0;
+			callback_.OnRtcCallToSipClosed(str_caller_id_, -102);
+		}
 	}
 }
 
@@ -98,12 +113,10 @@ void RtcCallToSip::OnRegState(bool Ok)
 }
 void RtcCallToSip::OnCallOk()
 {
-	aud_enc_->Init(aud_rtc_sample_hz_, aud_rtc_channels_, 32000, false);
+	
 }
 void RtcCallToSip::OnCallHangUp()
 {
-	aud_enc_->DeInit();
-
 	if (task_started_) {
 		callback_.OnRtcCallToSipClosed(str_caller_id_, 0);
 	}
@@ -115,6 +128,7 @@ void RtcCallToSip::OnCallAudioData(const char*pData, int nLen, int nSampleHz, in
 	int bufferUsed = 0;
 	while (bufferSize > 0)
 	{
+		//memset((char*)pData + bufferUsed, 0, aFrame10Ms)
 		aud_enc_->SetAudioData(pData + bufferUsed, nSampleHz, nChannels);
 
 		bufferSize -= aFrame10Ms;
@@ -139,11 +153,6 @@ void RtcCallToSip::onLeave(ARM::LEAVE_CHANNEL_ERR errorCode)
 }
 void RtcCallToSip::onMemberCountUpdated(int memberCount)
 {// 由于是服务端，没有主动挂断按钮可操作，所以需要对频道内人员数进行判断。当频道内只剩自己一个人时则退出频道
-	if (rtm_chan_check_memsize_time_ != 0 && rtm_chan_check_memsize_time_ <= XGetUtcTimestamp()) {
-		if (memberCount <= 1) {
-			rtm_chan_check_memsize_time_ = 0;
-			callback_.OnRtcCallToSipClosed(str_caller_id_, -102);
-		}
-	}
+	n_chan_member_size_ = memberCount;
 }
 
