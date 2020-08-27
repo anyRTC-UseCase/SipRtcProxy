@@ -19,7 +19,7 @@ CFILES =
 CPPFILES = \
 	./src/config.cpp \
     ./src/main.cpp \
-    ./src/src/RtcCallToSip.cpp \
+    ./src/RtcCallToSip.cpp \
     ./src/RtcCall.cpp \
     ./src/SipCallToRtc.cpp \
     ./src/SipRtcMgr.cpp \

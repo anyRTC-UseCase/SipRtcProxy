@@ -15,6 +15,8 @@
 #include "RtcLog.h"
 #include "SipRtcMgr.h"
 
+#define SVR_VERSION "1.0.0.1.20200827"
+
 int main(int argc, char*argv[])
 {
 	ConfigSet	conf;
@@ -27,6 +29,7 @@ int main(int argc, char*argv[])
 		getchar();
 		exit(0);
 	}
+	printf("****** SRProxy version: %s ******\r\n", SVR_VERSION);
 
 	SipRtcMgr sipRtcMgr;
 

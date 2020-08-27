@@ -145,9 +145,13 @@ int XSplitChar(const std::string& source, char delimiter,
 
 void XGetRandomStr(std::string&sRandStr, int len) {
 	//∫¡√Î
+#ifdef _WIN32
 	struct timeb time_seed;
 	ftime(&time_seed);
 	srand(time_seed.time * 1000 + time_seed.millitm);
+#else
+	srand((unsigned)time(NULL));
+#endif
 
 	for (int i = 0; i < len; ++i) {
 		switch (rand() % 3) {
