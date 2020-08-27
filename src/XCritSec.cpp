@@ -21,10 +21,6 @@ XCritSec::XCritSec(void)
 #ifdef WIN32
     InitializeCriticalSection(&m_CritSec);
 #else
-#if(0)
-	//linux 7.3
-	pthread_mutex_init(&m_pMutex, NULL);
-#else
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
 #ifndef NETEC_IOS
@@ -33,7 +29,6 @@ XCritSec::XCritSec(void)
 	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&m_pMutex, &attr);
 	pthread_mutexattr_destroy(&attr);
-#endif
 #endif
 }
 

@@ -47,7 +47,7 @@ public:
 	void SetIChannel(ARM::IChannel*rtmChannel);
 
 	void InitSipAccount(const std::string&strSvrIp, int nPort, const std::string&strAccount, const std::string&strPwd);
-	void StartTask(const std::string&strAppId, const std::string&strChanId, const std::string&strSipNumber, const std::string&strSipData);
+	void StartTask(const std::string&strAppId, const std::string&strChanId, const std::string&strUserId, const std::string&strSipNumber, const std::string&strSipData);
 	void StopTask();
 
 	void DoProcess();
@@ -77,6 +77,7 @@ private:
 	int64_t		rtm_chan_check_memsize_time_;		// 用于Rtm的频道检测频道里面的人员数量，如果只有自己则需要退出频道
 	std::string str_caller_id_;
 	std::string str_chan_id_;
+	std::string str_user_id_;
 	std::string str_sip_svr_;
 	std::string str_sip_account_;
 	std::string str_sip_number_;

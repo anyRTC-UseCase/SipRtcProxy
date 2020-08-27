@@ -329,6 +329,7 @@ void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInv
 			jsonDoc.SetObject();
 			jsonDoc.AddMember("Mode", 1, jsonDoc.GetAllocator());
 			jsonDoc.AddMember("Conference", bConference, jsonDoc.GetAllocator());
+			jsonDoc.AddMember("SipNumber", strSipAccount.c_str(), jsonDoc.GetAllocator());
 			jsonDoc.AddMember("SipData", "", jsonDoc.GetAllocator());
 			jsonDoc.Accept(jsonWriter);
 			remoteInvitation->setResponse(jsonStr.GetString());
@@ -506,12 +507,14 @@ void SipRtcMgr::ProcessMgrEvent()
 			const std::string&strSipAccount = mgrEvent->mapStr["SipAccount"];
 			const std::string&strSipData = mgrEvent->mapStr["SipData"];
 			std::string strSipNumber = str_ivr_sip_account_;
+			std::string strUserId = strSipAccount;	// 默认的UserId使用分配的Sip号码
 			if (strSipData.size() > 0) {
 				rapidjson::Document		jsonReqDoc;
 				JsonStr sprCopy(strSipData.c_str(), strSipData.length());
 				if (!jsonReqDoc.ParseInsitu<0>(sprCopy.Ptr).HasParseError()) {
 					if (HasJsonStr(jsonReqDoc, "SipNumber")) {
 						strSipNumber = GetJsonStr(jsonReqDoc, "SipNumber", F_AT);
+						strUserId = strSipNumber;	// 如果有指定的Sip号码，则替换成指定的Sip号码(一般是多人呼叫中使用)
 					}
 				}
 			}
@@ -519,7 +522,7 @@ void SipRtcMgr::ProcessMgrEvent()
 			if (map_rtc_call_to_sip_.find(strCallerId) != map_rtc_call_to_sip_.end()) {
 				RtcCallToSip* rtcCallToSip = map_rtc_call_to_sip_[strCallerId];
 				rtcCallToSip->InitSipAccount(str_sip_svr_ip_, n_sip_svr_port_, strSipAccount, str_sip_password_);
-				rtcCallToSip->StartTask(str_rtc_rtm_app_id_.c_str(), strChanId, strSipNumber, strSipData.c_str());
+				rtcCallToSip->StartTask(str_rtc_rtm_app_id_.c_str(), strChanId, strUserId, strSipNumber, strSipData.c_str());
 			}
 			else {
 				// 呼叫已销毁，需要释放Sip账号

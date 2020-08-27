@@ -14,7 +14,7 @@ public:
 		SetData(pData, nLen);
 	};
 	virtual ~JsonStr(){
-		if(Ptr != NULL)
+		//#3 The C++ language guarantees that delete p will do nothing if p is null
 		{
 			delete[] Ptr;
 			Ptr = NULL;

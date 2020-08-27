@@ -26,8 +26,8 @@ RtcCall::RtcCall()
 	, aud_rtc_channels_(2)
 {
 	aud_rtc_2_sip_buffer_ = new char[kMaxDataSizeSamples];
-	rtc_chan_ = createARtSEngine();
 	aud_enc_ = createRtcAudEncoder(*this);
+	rtc_chan_ = createARtSEngine();
 
 	aud_sip_req_len_ = (aud_sip_sample_hz_ * aud_sip_channels_ * sizeof(int16_t)) / 50;
 }
@@ -35,17 +35,17 @@ RtcCall::~RtcCall(void)
 {
 	assert(!b_join_chan_);
 
-	if (aud_rtc_2_sip_buffer_ != NULL) {
+	//#3 The C++ language guarantees that delete p will do nothing if p is null
+	{
 		delete[] aud_rtc_2_sip_buffer_;
 		aud_rtc_2_sip_buffer_ = NULL;
 	}
-	if (aud_enc_ != NULL) {
+	if(aud_enc_ != NULL)
+	{
 		aud_enc_->DeInit();
 		delete aud_enc_;
 		aud_enc_ = NULL;
 	}
-
-	if (rtc_chan_ != NULL)
 	{
 		delete rtc_chan_;
 		rtc_chan_ = NULL;

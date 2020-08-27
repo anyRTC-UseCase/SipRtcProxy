@@ -20,7 +20,7 @@ public:
 	XAutoLock(XCritSec&rXCritSec);
 	~XAutoLock(void);
 protected:
-    XCritSec& m_rXCritSec;
+    XCritSec& x_crit_sec_;
 };
 
 #endif 

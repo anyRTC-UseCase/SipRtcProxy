@@ -44,15 +44,16 @@ void RtcCallToSip::InitSipAccount(const std::string&strSvrIp, int nPort, const s
 		sip_call_ = SipCall::Create(*this, strSvrIp, nPort, strAccount, strPwd);
 	}
 }
-void RtcCallToSip::StartTask(const std::string&strAppId, const std::string&strChanId, const std::string&strSipNumber, const std::string&strSipData)
+void RtcCallToSip::StartTask(const std::string&strAppId, const std::string&strChanId, const std::string&strUserId, const std::string&strSipNumber, const std::string&strSipData)
 {
 	assert(sip_call_ != NULL);
 	task_started_ = true;
 	str_chan_id_ = strChanId;
+	str_user_id_ = strUserId;
 	str_sip_number_ = strSipNumber;
 	str_sip_data_ = strSipData;
 
-	RtcCall::JoinRtc(strAppId, strChanId, strSipNumber);
+	RtcCall::JoinRtc(strAppId, strChanId, strUserId);
 
 	if (rtm_channel_ != NULL) {
 		rtm_channel_->join();

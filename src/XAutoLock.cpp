@@ -15,12 +15,12 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 XAutoLock::XAutoLock(XCritSec&rXCritSec)
-:m_rXCritSec(rXCritSec)
+:x_crit_sec_(rXCritSec)
 {
-	m_rXCritSec.Lock();
+	x_crit_sec_.Lock();
 }
 
 XAutoLock::~XAutoLock()
 {
-	m_rXCritSec.UnLock();
+	x_crit_sec_.UnLock();
 }
