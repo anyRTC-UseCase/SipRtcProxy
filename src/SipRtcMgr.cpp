@@ -178,10 +178,12 @@ void SipRtcMgr::OnSipIncomingCall(int callId, const std::string&strFromSipId, co
 
 		map_sip_call_to_rtc_[callId] = sipCallToRtc;
 
-		long long reqId = 0;
-		const char* peerIds[1];
-		peerIds[0] = strToSipId.c_str();
-		rtm_service_->subscribePeersOnlineStatus(peerIds, 1, reqId);
+		{// Subscribe peer online status
+			long long reqId = 0;
+			const char* peerIds[1];
+			peerIds[0] = strToSipId.c_str();
+			rtm_service_->subscribePeersOnlineStatus(peerIds, 1, reqId);
+		}
 	}
 }
 void SipRtcMgr::OnSipCallApp(int callId, const std::string&strFromSipId, const std::string&strToSipId, const std::string&strCusData)
@@ -287,13 +289,11 @@ void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInv
 	if (!jsonReqDoc.ParseInsitu<0>(sprCopy.Ptr).HasParseError()) {
 		int nMode = GetJsonInt(jsonReqDoc, "Mode", F_AT);
 		bool bConference = GetJsonBool(jsonReqDoc, "Conference", F_AT);
-		const char*strChanId = GetJsonStr(jsonReqDoc, "ChanId", F_AT);
+		std::string strChanId = GetJsonStr(jsonReqDoc, "ChanId", F_AT);
 		const char*strUserData = GetJsonStr(jsonReqDoc, "UserData", F_AT);
 		const char*strSipData = GetJsonStr(jsonReqDoc, "SipData", F_AT);
-		if (!JsStrNotNull(strChanId)) {// 频道ID不可为空
-			remoteInvitation->setResponse("error");
-			rtm_call_mgr_->refuseRemoteInvitation(remoteInvitation);
-			return;
+		if (strChanId.length() == 0) {//* 主叫不带ChanId，则需要生成一个
+			XGetRandomStr(strChanId, 9);
 		}
 
 		if (HasRtcChan(strChanId)) {
@@ -312,7 +312,7 @@ void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInv
 				RtcCallToSip* rtcCallToSip = new RtcCallToSip(*this);
 				rtcCallToSip->SetCallerId(remoteInvitation->getCallerId());
 				if (bConference) {
-					ARM::IChannel*rtmChann = rtm_service_->createChannel(strChanId, rtcCallToSip);
+					ARM::IChannel*rtmChann = rtm_service_->createChannel(strChanId.c_str(), rtcCallToSip);
 					rtcCallToSip->SetIChannel(rtmChann);
 				}
 				InitRtcCallToSip(remoteInvitation->getCallerId(), strChanId, strSipAccount, strSipData);
@@ -329,6 +329,7 @@ void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInv
 			jsonDoc.SetObject();
 			jsonDoc.AddMember("Mode", 1, jsonDoc.GetAllocator());
 			jsonDoc.AddMember("Conference", bConference, jsonDoc.GetAllocator());
+			jsonDoc.AddMember("ChanId", strChanId.c_str(), jsonDoc.GetAllocator());
 			jsonDoc.AddMember("SipNumber", strSipAccount.c_str(), jsonDoc.GetAllocator());
 			jsonDoc.AddMember("SipData", "", jsonDoc.GetAllocator());
 			jsonDoc.Accept(jsonWriter);
@@ -336,10 +337,12 @@ void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInv
 
 			rtm_call_mgr_->acceptRemoteInvitation(remoteInvitation);
 			if (!bConference) {//* 只有P2P呼叫时才需要订阅对方的在线状态
-				long long reqId = 0;
-				const char* peerIds[1];
-				peerIds[0] = remoteInvitation->getCallerId();
-				rtm_service_->subscribePeersOnlineStatus(peerIds, 1, reqId);
+				{// Subscribe peer online status
+					long long reqId = 0;
+					const char* peerIds[1];
+					peerIds[0] = remoteInvitation->getCallerId();
+					rtm_service_->subscribePeersOnlineStatus(peerIds, 1, reqId);
+				}
 			}
 		}
 		else {

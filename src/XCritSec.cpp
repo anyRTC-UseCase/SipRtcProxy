@@ -23,9 +23,6 @@ XCritSec::XCritSec(void)
 #else
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
-#ifndef NETEC_IOS
-	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-#endif
 	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&m_pMutex, &attr);
 	pthread_mutexattr_destroy(&attr);
