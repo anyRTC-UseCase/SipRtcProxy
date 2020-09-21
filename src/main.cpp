@@ -61,7 +61,7 @@ int main(int argc, char*argv[])
 		if (conf.GetIntVal("proxy", "on") != 0) {// SipProxy - 打开
 			std::string strProxyAcc = conf.GetValue("proxy", "account");
 			std::string strProxyPwd = conf.GetValue("proxy", "pwd");
-			sipRtcMgr.StartSipProxy(strSipSvrIp, strProxyAcc, strProxyPwd);
+			sipRtcMgr.StartSipProxy(strSvr, strProxyAcc, strProxyPwd);
 		}
 	}
 

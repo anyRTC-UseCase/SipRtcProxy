@@ -107,7 +107,8 @@ void SipRtcMgr::StartIvr(const std::string&strRtmAccount, const std::string&strS
 		rtm_service_ = ARM::createRtmService();
 		rtm_service_->initialize(str_rtc_rtm_app_id_.c_str(), this);
 		rtm_service_->setLogFile("./sip_rtm.log");
-		rtm_service_->login(NULL, strRtmAccount.c_str());
+		int ret = rtm_service_->login(NULL, strRtmAccount.c_str());
+		printf("RtmService login: %d\r\n", ret);
 
 		rtm_call_mgr_ = rtm_service_->getRtmCallManager(this);
 
