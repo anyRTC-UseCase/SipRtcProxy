@@ -15,7 +15,7 @@
 #include "RtcLog.h"
 #include "SipRtcMgr.h"
 
-#define SVR_VERSION "1.0.0.1.20200827"
+#define SVR_VERSION "1.0.0.2.20200922"
 
 int main(int argc, char*argv[])
 {

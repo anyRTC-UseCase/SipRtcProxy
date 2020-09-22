@@ -59,7 +59,7 @@ void RtcCallToSip::StartTask(const std::string&strAppId, const std::string&strCh
 		rtm_channel_->join();
 	}
 
-	aud_enc_->Init(aud_rtc_sample_hz_, aud_rtc_channels_, 24000, false);
+	aud_enc_->Init(aud_rtc_sample_hz_, aud_rtc_channels_, 16000, false);
 }
 void RtcCallToSip::StopTask()
 {
