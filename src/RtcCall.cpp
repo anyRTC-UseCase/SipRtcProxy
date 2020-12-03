@@ -61,8 +61,8 @@ void RtcCall::JoinRtc(const std::string&strAppId, const std::string&strChanId, c
 		sprintf(strParams, "{\"Cmd\":\"SetStreamTypes\", \"StreamTypes\": %d}", 0/*0:audio 1:video 2:audio&video*/);
 		rtc_chan_->set_parameters(strParams);
 		rtc_chan_->set_parameters("{\"Cmd\":\"SetHost\", \"Host\": true}");
-		rtc_chan_->mute_local_video(true);	// ²»°lËÍÒ•îl”µ“ş
 		rtc_chan_->join_channel(strChanId.c_str(), NULL, 0);
+		rtc_chan_->mute_local_video(true);	// ²»°lËÍÒ•îl”µ“ş
 
 		Timer10Ms::Inst().RegisterTimer(this, this);
 	}

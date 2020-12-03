@@ -16,6 +16,8 @@ public:
 	virtual void on_error(const char *channel, int error, const char *msg) {};
 	virtual void on_user_joined(const char *channel, const char * uid, int elapsed) {};
 	virtual void on_user_offline(const char *channel, const char * uid, int reason) {};
+	virtual void on_user_stream_open(const char *channel, const char * uid, int elapsed) {};
+	virtual void on_user_stream_closed(const char *channel, const char * uid, int reason) {};
 	virtual void on_user_mute_audio(const char *channel, const char * uid, int muted) {};
 	virtual void on_user_mute_video(const char *channel, const char * uid, int muted) {};
 	virtual void on_key_frame_gen_req(const char *channel, const char * requesting_uid) {};

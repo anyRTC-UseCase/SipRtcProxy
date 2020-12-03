@@ -10,36 +10,36 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <cstdint>
-#define AR_CALL __cdecl
+#define ARM_CALL __cdecl
 #if defined(ARRTC_EXPORT)
-#define AR_API extern "C" __declspec(dllexport)
+#define ARM_API extern "C" __declspec(dllexport)
 #else
-#define AR_API extern "C" __declspec(dllimport)
+#define ARM_API extern "C" __declspec(dllimport)
 #endif
-#define _AR_CPP_API
+#define _ARM_CPP_API
 
 #elif defined(__APPLE__)
 #include <cstdint>
-#define AR_API __attribute__((visibility("default"))) extern "C"
-#define AR_CALL
-#define _AR_CPP_API
+#define ARM_API __attribute__((visibility("default"))) extern "C"
+#define ARM_CALL
+#define _ARM_CPP_API
 
 #elif defined(__ANDROID__) || defined(__linux__)
 #if defined(__ANDROID__) && defined(FEATURE_RTM_STANDALONE_SDK)
-#define AR_API extern "C"
-#define _AR_CPP_API
+#define ARM_API extern "C"
+#define _ARM_CPP_API
 #else
-#define AR_API extern "C" __attribute__((visibility("default")))
-#define _AR_CPP_API __attribute__((visibility("default")))
+#define ARM_API extern "C" __attribute__((visibility("default")))
+#define _ARM_CPP_API __attribute__((visibility("default")))
 #endif
-#define AR_CALL
+#define ARM_CALL
 
 #else
-#define AR_API extern "C"
-#define AR_CALL
-#define _AR_CPP_API
+#define ARM_API extern "C"
+#define ARM_CALL
+#define _ARM_CPP_API
 #endif
-
+#include <stdint.h>
 
 /**
  The prefix for ending a call. You can use it with the \ref ar::rtm::IRtmService::sendMessageToPeer(const char *peerId, const IMessage *message, const SendMessageOptions &options) "sendMessageToPeer" method to be compatible with the endCall method of the legacy AR Signaling SDK.
@@ -2963,7 +2963,7 @@ Creates an \ref ar::rtm::IRtmService "IRtmService" instance.
 
 @return An \ref ar::rtm::IRtmService "IRtmService" instance.
 */
-AR_API IRtmService* AR_CALL createRtmService();
+ARM_API IRtmService* ARM_CALL createRtmService();
 
 ////////////////////////////////////////////////////////
 /** @} */
@@ -2980,7 +2980,7 @@ Gets the version of the AR RTM SDK.
 
 @return The version of the AR RTM SDK.
 */
-AR_API const char* AR_CALL getRtmSdkVersion();
+ARM_API const char* ARM_CALL getRtmSdkVersion();
 
 ////////////////////////////////////////////////////////
 /** @} */

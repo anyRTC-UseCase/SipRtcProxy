@@ -30,6 +30,7 @@
 #define AR_CALL
 #else
 #define AR_API extern "C"
+#define AR_CPP_API
 #define AR_CALL
 #endif
 
@@ -194,26 +195,34 @@ enum WARN_CODE_TYPE
     /** 1032: Audio Device Module: the playback audio voice is too low.
     */
     WARN_ADM_PLAYOUT_AUDIO_LOWLEVEL = 1032,
-    /** 1040: Audio device module: An exception occurs with the audio drive. 
-     * Solutions: 
+    /** 1033: Audio device module: The audio recording device is occupied.
+     */
+    WARN_ADM_RECORD_AUDIO_IS_ACTIVE = 1033,
+    /** 1040: Audio device module: An exception occurs with the audio drive.
+     * Solutions:
      * - Disable or re-enable the audio device.
      * - Re-enable your device.
      * - Update the sound card drive.
      */
     WARN_ADM_WINDOWS_NO_DATA_READY_EVENT = 1040,
-    /** 1051: Audio Device Module: howling is detected.
+    /** 1042: Audio device module: The audio recording device is different from the audio playback device,
+     * which may cause echoes problem. Agora recommends using the same audio device to record and playback
+     * audio.
+     */
+    WARN_ADM_INCONSISTENT_AUDIO_DEVICE = 1042,
+    /** 1051: (Communication profile only) Audio processing module: A howling sound is detected when recording the audio data.
     */
     WARN_APM_HOWLING = 1051,
-    /** 1052: Audio Device Module: the device is in the glitch state.
+    /** 1052: Audio Device Module: The device is in the glitch state.
     */
     WARN_ADM_GLITCH_STATE = 1052,
-    /** 1053: Audio Device Module: the underlying audio settings have changed.
+    /** 1053: Audio Processing Module: A residual echo is detected, which may be caused by the belated scheduling of system threads or the signal overflow.
     */
-    WARN_ADM_IMPROPER_SETTINGS = 1053,
-    /**
-        */
+    WARN_APM_RESIDUAL_ECHO = 1053,
+    /// @cond
     WARN_ADM_WIN_CORE_NO_RECORDING_DEVICE = 1322,
-    /** 1323: Audio device module: No available playback device. 
+    /// @endcond
+    /** 1323: Audio device module: No available playback device.
      * Solution: Plug in the audio device.
     */
     WARN_ADM_WIN_CORE_NO_PLAYOUT_DEVICE = 1323,
@@ -224,18 +233,19 @@ enum WARN_CODE_TYPE
      * - Update the sound card drive.
      */
     WARN_ADM_WIN_CORE_IMPROPER_CAPTURE_RELEASE = 1324,
-    /** 1610: Super-resolution warning: the original video dimensions of the remote user exceed 640 &times; 480.
+    /** 1610: Super-resolution warning: The original video dimensions of the remote user exceed 640 * 480.
     */
     WARN_SUPER_RESOLUTION_STREAM_OVER_LIMITATION = 1610,
-    /** 1611: Super-resolution warning: another user is using super resolution.
+    /** 1611: Super-resolution warning: Another user is using super resolution.
     */
     WARN_SUPER_RESOLUTION_USER_COUNT_OVER_LIMITATION = 1611,
     /** 1612: The device is not supported.
     */
     WARN_SUPER_RESOLUTION_DEVICE_NOT_SUPPORTED = 1612,
-
+    /// @cond
     WARN_RTM_LOGIN_TIMEOUT = 2005,
     WARN_RTM_KEEP_ALIVE_TIMEOUT = 2009
+    /// @endcond
 };
 
 /** Error code.
@@ -292,7 +302,10 @@ enum ERROR_CODE_TYPE
     /** 15: No network buffers are available. This is for internal SDK internal use only, and it does not return to the application through any method or callback.
      */
     ERR_NET_NOBUFS = 15,
-    /** 17: The request to join the channel is rejected. This error usually occurs when the user is already in the channel, and still calls the method to join the channel, for example, \ref ar::rtc::IRtcEngine::joinChannel "joinChannel".
+    /** 17: The request to join the channel is rejected.
+     *
+     * - This error usually occurs when the user is already in the channel, and still calls the method to join the channel, for example, \ref agora::rtc::IRtcEngine::joinChannel "joinChannel".
+     * - This error usually occurs when the user tries to join a channel during a call test (\ref agora::rtc::IRtcEngine::startEchoTest "startEchoTest"). Once you call \ref agora::rtc::IRtcEngine::startEchoTest "startEchoTest", you need to call \ref agora::rtc::IRtcEngine::stopEchoTest "stopEchoTest" before joining a channel.
      */
     ERR_JOIN_CHANNEL_REJECTED = 17,
     /** 18: The request to leave the channel is rejected.
@@ -321,8 +334,11 @@ enum ERROR_CODE_TYPE
     /** 102: The specified channel name is invalid. Please try to rejoin the channel with a valid channel name.
      */
     ERR_INVALID_CHANNEL_NAME = 102,
-    /** **DEPRECATED** 109: Deprecated as of v2.4.1. Use CONNECTION_CHANGED_TOKEN_EXPIRED(9) in the \ref ar::rtc::IRtcEngineEventHandler::onConnectionStateChanged "onConnectionStateChanged" callback instead.
-     
+    /** 103: Fails to get server resources in the specified region. Please try to specify another region when calling \ref agora::rtc::IRtcEngine::initialize "initialize".
+     */
+    ERR_NO_SERVER_RESOURCES = 103,
+    /** **DEPRECATED** 109: Deprecated as of v2.4.1. Use CONNECTION_CHANGED_TOKEN_EXPIRED(9) in the \ref agora::rtc::IRtcEngineEventHandler::onConnectionStateChanged "onConnectionStateChanged" callback instead.
+
      The token expired due to one of the following reasons:
      
      - Authorized Timestamp expired: The timestamp is represented by the number of seconds elapsed since 1/1/1970. The user can use the Token to access the AR service within five minutes after the Token is generated. If the user does not access the AR service after five minutes, this Token is no longer valid.
