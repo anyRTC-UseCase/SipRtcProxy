@@ -139,6 +139,7 @@
 ### 四，常见问题
 
 详见[常见问题](https://docs.anyrtc.io/platforms/docs/platforms/FAQ/faq)。
+[Linux如何部署](https://blog.csdn.net/liutao6982/article/details/108277498)
 
 **anyRTC创业扶持计划**
 
