@@ -130,11 +130,18 @@
 
 2，Linux - Centos7.0 + 
 
-​	下载代码到本地：Git clone https://github.com/anyRTC-UseCase/SipRtcProxy.git 
+- 下载代码到本地：Git clone https://github.com/anyRTC-UseCase/SipRtcProxy.git 
+- 进行配置
 
-​	进入项目目录
+```
+[root@localhost SipRtcProxy]# vim  /etc/profile
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/SipRtcProxy/so/
+[root@localhost SipRtcProxy]# source /etc/profile
+```
+> /root/SipRtcProxy/so/ 位置改为自己的位置即可
 
-​	执行：make
+- 进入项目目录
+- 执行：make
 
 ### 四，常见问题
 
