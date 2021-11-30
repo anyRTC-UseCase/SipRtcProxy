@@ -32,6 +32,10 @@ public:
 
 	void SetSipAudToRtc(const char*pData, int nLen, int nSampleHz, int nChannel);
 
+	void SetUserData(int nType, void*pUserData);
+	int GetUserType();
+	void*GetUserData();
+
 	//* For RtcCall
 	virtual void OnRtcCallAudioMixData(const char*pData, int nLen, int nSampleHz, int nChannels, uint32_t timestamp);
 
@@ -40,6 +44,9 @@ private:
 	SipProxy	*sip_proxy_;
 
 	std::string str_callee_id_;
+
+	int			n_type_;
+	void		*user_data_;
 };
 
 #endif	// __SIP_CALL_TO_RTC_H__

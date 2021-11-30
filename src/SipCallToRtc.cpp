@@ -14,6 +14,8 @@
 SipCallToRtc::SipCallToRtc(int nCallId, SipProxy*proxy)
 	: n_call_id_(nCallId)
 	, sip_proxy_(proxy)
+	, n_type_(0)
+	, user_data_(NULL)
 {
 
 }
@@ -49,6 +51,20 @@ void SipCallToRtc::SetSipAudToRtc(const char*pData, int nLen, int nSampleHz, int
 	}
 
 	//aud_enc_->SetAudioData(pData, nSampleHz, nChannels);
+}
+
+void SipCallToRtc::SetUserData(int nType, void*pUserData)
+{
+	n_type_ = nType;
+	user_data_ = pUserData;
+}
+int SipCallToRtc::GetUserType()
+{
+	return n_type_;
+}
+void*SipCallToRtc::GetUserData()
+{
+	return user_data_;
 }
 
 //* For RtcCall

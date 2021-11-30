@@ -24,9 +24,6 @@
     <ClCompile Include="src\RtcCall.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\RtcCallToSip.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\SipCallToRtc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -51,15 +48,18 @@
     <ClCompile Include="src\XUtil.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\RtmToSip.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SipToRtm.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\RtcCall.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RtcCallToSip.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\SipCallToRtc.h">
@@ -84,6 +84,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\XUtil.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RtmToSip.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SipToRtm.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

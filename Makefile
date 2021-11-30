@@ -19,11 +19,12 @@ CFILES =
 CPPFILES = \
 	./src/config.cpp \
     ./src/main.cpp \
-    ./src/RtcCallToSip.cpp \
     ./src/RtcCall.cpp \
+	./src/RtmToSip.cpp \
     ./src/SipCallToRtc.cpp \
     ./src/SipRtcMgr.cpp \
     ./src/SipRtcStats.cpp \
+	./src/SipToRtm.cpp \
     ./src/Timer10Ms.cpp \
     ./src/XAutoLock.cpp \
     ./src/XCritSec.cpp \

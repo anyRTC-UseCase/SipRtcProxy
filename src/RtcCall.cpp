@@ -16,6 +16,7 @@ static const size_t kMaxDataSizeSamples = 3840;
 RtcCall::RtcCall()
 	: rtc_chan_(NULL)
 	, b_join_chan_(false)
+	, n_svr_port_(0)
 	, aud_rtc_2_sip_buffer_(NULL)
 	, aud_sip_sample_hz_(16000)
 	, aud_sip_channels_(1)
@@ -52,15 +53,24 @@ RtcCall::~RtcCall(void)
 	}
 }
 
+void RtcCall::SetServer(const std::string&strAddr, int nPort)
+{
+	str_svr_addr_ = strAddr;
+	n_svr_port_ = nPort;
+}
 void RtcCall::JoinRtc(const std::string&strAppId, const std::string&strChanId, const std::string&strUId)
 {
 	if (!b_join_chan_) {
 		b_join_chan_ = true;
 		rtc_chan_->init(strAppId.c_str(), strUId.c_str(), this, NULL);
-		char strParams[256];
+		char strParams[512];
 		sprintf(strParams, "{\"Cmd\":\"SetStreamTypes\", \"StreamTypes\": %d}", 0/*0:audio 1:video 2:audio&video*/);
 		rtc_chan_->set_parameters(strParams);
 		rtc_chan_->set_parameters("{\"Cmd\":\"SetHost\", \"Host\": true}");
+		if (str_svr_addr_.length() > 0 && n_svr_port_ > 0) {
+			sprintf(strParams, "{\"Cmd\":\"ConfPriCloudAddr\", \"ServerAdd\": \"%s\", \"Port\": %d}", str_svr_addr_.c_str(), n_svr_port_);
+			rtc_chan_->set_parameters(strParams);
+		}
 		rtc_chan_->join_channel(strChanId.c_str(), NULL, 0);
 		rtc_chan_->mute_local_video(true);	// ²»°lËÍÒ•îl”µ“ş
 

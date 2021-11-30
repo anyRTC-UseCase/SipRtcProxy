@@ -17,8 +17,35 @@
 #include "rapidjson/prettywriter.h"	
 #include "rapidjson/stringbuffer.h"
 
+enum CallType
+{
+	RtmCallToSip = 0,
+	SipCallToRtm,
+};
+
+size_t str_split(const std::string& source,
+	char delimiter,
+	std::vector<std::string>* fields) {
+	fields->clear();
+	size_t last = 0;
+	for (size_t i = 0; i < source.length(); ++i) {
+		if (source[i] == delimiter) {
+			fields->push_back(source.substr(last, i - last));
+			last = i + 1;
+		}
+	}
+	fields->push_back(source.substr(last, source.length() - last));
+	return fields->size();
+}
+
 #define NullStr ""
 #define TIMER_1S 1000
+static SipRtcMgr* gInst = NULL;
+
+SipRtcMgr&SipRtcMgr::Inst()
+{
+	return *gInst;
+}
 
 SipRtcMgr::SipRtcMgr(void)
 	: sip_proxy_(NULL)
@@ -29,10 +56,11 @@ SipRtcMgr::SipRtcMgr(void)
 	, n_rtm_svr_port_(0)
 	, n_sip_svr_port_(5060)
 {
-
+	gInst = this;
 }
 SipRtcMgr::~SipRtcMgr(void)
 {
+	gInst = NULL;
 	assert(sip_proxy_ == NULL);
 	assert(rtm_service_ == NULL);
 	assert(rtm_call_mgr_ == NULL);
@@ -41,6 +69,22 @@ SipRtcMgr::~SipRtcMgr(void)
 void SipRtcMgr::SetRtcRtmAppId(const std::string&strAppId)
 {
 	str_rtc_rtm_app_id_ = strAppId;
+}
+void SipRtcMgr::SetSipSvr(const std::string&strSipSvr)
+{
+	std::string strSipSvrIp;
+	int nSipPort = 5060;
+	size_t pos = strSipSvr.find(":");
+	if (pos != std::string::npos) {
+		strSipSvrIp = strSipSvr.substr(0, pos);
+		std::string strPort = strSipSvr.substr(pos + 1);
+		nSipPort = atoi(strPort.c_str());
+	}
+	else {
+		strSipSvrIp = strSipSvr;
+	}
+	str_sip_svr_ip_ = strSipSvrIp;
+	n_sip_svr_port_ = nSipPort;
 }
 void SipRtcMgr::SetRtcSvrPort(const std::string&strSvrIp, int nPort)
 {
@@ -52,69 +96,81 @@ void SipRtcMgr::SetRtmSvrPort(const std::string&strSvrIp, int nPort)
 	str_rtm_svr_ip_ = strSvrIp;
 	n_rtm_svr_port_ = nPort;
 }
-bool SipRtcMgr::SetSipAccount(const std::string&strSvrIp, int nPort, const std::string&strPrefix, const std::string&strRule, const std::string&strPassword)
+void SipRtcMgr::SetPstnSvr(const std::string&strPstnSvr, const std::string&strPstnPrefix)
 {
-	if (strRule.length() == 0) {
-		//RtcLog(ERR, "Sip account rule is null");
-		return false;
-	}
-	std::string strFrom;
-	std::string strTo;
-	std::string strRuleCopy = strRule;
-	size_t pos = strRuleCopy.find("-");
-	if (pos != std::string::npos) {
-		strFrom = strRuleCopy.substr(0, pos);
-		strTo = strRuleCopy.substr(pos + 1);
-	}
-	if (strFrom.length() == 0 || strTo.length() == 0) {
-		//RtcLog(ERR, "Sip account rule need xxx-yyy");
-		return false;
-	}
-	if (strFrom.length() > strTo.length()) {
-		//RtcLog(ERR, "Sip account rule(xxx-yyy) is error, length of xxx need small than yyy");
-		return false;
-	}
-	int nMinDigit = strFrom.length();
-	int nFrom = atoi(strFrom.c_str());
-	int nTo = atoi(strTo.c_str());
-	if (nTo < nFrom) {
-		//RtcLog(ERR, "Sip account rule(xxx-yyy) is error, yyy need bigger than xxx");
-		return false;
-	}
-	str_sip_svr_ip_ = strSvrIp;
-	n_sip_svr_port_ = nPort;
-	str_sip_password_ = strPassword;
-	char *pAccount = new char[strlen(strPrefix.c_str()) + nTo + 16];
-	for (int i = nFrom; i <= nTo; i++) {
-		sprintf(pAccount, "%s%.*d", strPrefix.c_str(), nMinDigit, i);
-		XAutoLock l(cs_sip_account_);
-		map_sip_account_[pAccount] = 0;
-	}
-	delete[] pAccount;
-
-	return true;
+	str_pstn_svr_ = strPstnSvr;
+	str_pstn_prefix_ = strPstnPrefix;
 }
-void SipRtcMgr::StartSipProxy(const std::string&strDomain, const std::string&strSipAccount, const std::string&strPwd)
+
+void SipRtcMgr::StartSipProxy(const std::string&strDomain, const std::string&strSipAccount, const std::string&strPwd, const std::string&strRtmAccount)
 {
 	if (sip_proxy_ == NULL) {
 		sip_proxy_ = SipProxy::Create(*this, strDomain, strSipAccount, strPwd);
 	}
-}
 
-void SipRtcMgr::StartIvr(const std::string&strRtmAccount, const std::string&strSipAccount)
-{
 	if (rtm_service_ == NULL) {
 		rtm_service_ = ARM::createRtmService();
 		rtm_service_->initialize(str_rtc_rtm_app_id_.c_str(), this);
-		rtm_service_->setLogFile("./sip_rtm.log");
+		//rtm_service_->setLogFile("./sip_rtm.log");
+		if (str_rtm_svr_ip_.length() > 0 && n_rtm_svr_port_ > 0) {
+			char strParams[1024];
+			sprintf(strParams, "{\"Cmd\":\"ConfPriCloudAddr\", \"ServerAdd\": \"%s\", \"Port\": %d}", str_rtm_svr_ip_.c_str(), n_rtm_svr_port_);
+			rtm_service_->setParameters(strParams);
+		}
 		int ret = rtm_service_->login(NULL, strRtmAccount.c_str());
 		printf("RtmService login: %d\r\n", ret);
 
 		rtm_call_mgr_ = rtm_service_->getRtmCallManager(this);
-
-		str_ivr_sip_account_ = strSipAccount;
 	}
 }
+
+void SipRtcMgr::StartRtm2Sip(const std::string&strAccRule)
+{//1016;20[01-99]
+	std::vector<std::string> arrAccount;
+	str_split(strAccRule, ';', &arrAccount);
+	if(arrAccount.size() > 0) {
+		for (int i = 0; i < arrAccount.size(); i++) {
+			const std::string&strAccount = arrAccount[i];
+			int nFind = strAccount.find("[");
+			if (nFind != std::string::npos && strAccount.c_str()[strAccount.length() -1] == ']') {
+				std::string strPrefix;
+				std::string strFrom;
+				std::string strTo;
+				strPrefix = strAccount.substr(0, nFind);
+				std::string strRuleCopy = strAccount.substr(nFind + 1, strAccount.length() - (nFind+1) - 1);
+				size_t pos = strRuleCopy.find("-");
+				if (pos != std::string::npos) {
+					strFrom = strRuleCopy.substr(0, pos);
+					strTo = strRuleCopy.substr(pos + 1);
+
+					int nMinDigit = strFrom.length();
+					int nFrom = atoi(strFrom.c_str());
+					int nTo = atoi(strTo.c_str());
+					if (nTo > nFrom) {
+						char *pAccount = new char[strlen(strPrefix.c_str()) + nTo + 16];
+						for (int i = nFrom; i <= nTo; i++) {
+							sprintf(pAccount, "%s%.*d", strPrefix.c_str(), nMinDigit, i);
+							XAutoLock l(cs_rtm_to_sip_);
+							if (map_rtm_to_sip_.find(pAccount) == map_rtm_to_sip_.end()) {
+								RtmToSip*rtmToSip = new RtmToSip(*this);
+								rtmToSip->StartRtm(pAccount);
+							}
+						}
+						delete[] pAccount;
+					}
+				}
+			}
+			else {
+				XAutoLock l(cs_rtm_to_sip_);
+				if (map_rtm_to_sip_.find(strAccount) == map_rtm_to_sip_.end()) {
+					RtmToSip*rtmToSip = new RtmToSip(*this);
+					rtmToSip->StartRtm(strAccount);
+				}
+			}
+		}
+	}
+}
+
 void SipRtcMgr::StopAll()
 {
 	if (rtm_service_ != NULL) {
@@ -140,12 +196,11 @@ bool SipRtcMgr::ProcessMsg()
 	{
 		next_check_rtc_to_sip_time_ = XGetUtcTimestamp() + TIMER_1S;
 
-		XAutoLock l(cs_rtc_call_to_sip_);
-		MapRtcCallToSip::iterator itrr = map_rtc_call_to_sip_.begin();
-		while (itrr != map_rtc_call_to_sip_.end()) {
-			RtcCallToSip* rtcCallToSip = itrr->second;
-			rtcCallToSip->DoProcess();
-			itrr++;
+		XAutoLock l(cs_rtm_to_sip_);
+		MapRtmToSip::iterator iter = map_rtm_to_sip_.begin();
+		while (iter != map_rtm_to_sip_.end()) {
+			iter->second->ProcessMsg();
+			iter++;
 		}
 	}
 	return true;
@@ -159,24 +214,19 @@ void SipRtcMgr::OnSipIncomingCall(int callId, const std::string&strFromSipId, co
 	if (map_sip_call_to_rtc_.find(callId) == map_sip_call_to_rtc_.end()) {
 		std::string strChanId ;
 		XGetRandomStr(strChanId, 9);
+		std::string strCallerId;
+		XGetRandomStr(strCallerId, 4);
 
 		SipCallToRtc* sipCallToRtc = new SipCallToRtc(callId, sip_proxy_);
 		sipCallToRtc->SetCalleeId(strToSipId);
-		sipCallToRtc->StartTask(str_rtc_rtm_app_id_, strChanId, strFromSipId);
+		sipCallToRtc->SetServer(str_rtc_svr_ip_, n_rtc_svr_port_);
+		sipCallToRtc->StartTask(str_rtc_rtm_app_id_, strChanId, strCallerId);
 
-		ARM::ILocalCallInvitation* localInv = rtm_call_mgr_->createLocalCallInvitation(strToSipId.c_str());
-		rapidjson::Document		jsonDoc;
-		rapidjson::StringBuffer jsonStr;
-		rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStr);
-		jsonDoc.SetObject();
-		jsonDoc.AddMember("Mode", 1, jsonDoc.GetAllocator());
-		jsonDoc.AddMember("Conference", 0, jsonDoc.GetAllocator());
-		jsonDoc.AddMember("ChanId", strChanId.c_str(), jsonDoc.GetAllocator());
-		jsonDoc.AddMember("SipData", strCusData.c_str(), jsonDoc.GetAllocator());
-		jsonDoc.Accept(jsonWriter);
-		localInv->setContent(jsonStr.GetString());
-		rtm_call_mgr_->sendLocalInvitation(localInv);
+		SipToRtm*sipToRtm = new SipToRtm(*this);
+		sipToRtm->SetSipCallInfo(callId, strChanId, strFromSipId, strToSipId, strCusData);
+		sipToRtm->StartRtm(strCallerId);
 
+		sipCallToRtc->SetUserData(SipCallToRtm, sipToRtm);
 		map_sip_call_to_rtc_[callId] = sipCallToRtc;
 
 		{// Subscribe peer online status
@@ -192,8 +242,24 @@ void SipRtcMgr::OnSipCallApp(int callId, const std::string&strFromSipId, const s
 }
 void SipRtcMgr::OnSipEndCall(int callId) 
 {
+	{
+		XAutoLock l(cs_sip_call_to_rtc_);
+		if (map_sip_call_to_rtc_.find(callId) != map_sip_call_to_rtc_.end()) {
+			SipCallToRtc* sipCallToRtc = map_sip_call_to_rtc_[callId];
+			sipCallToRtc->StopTask();
+			if (sipCallToRtc->GetUserType() == RtmCallToSip) {
+				RtmToSip*rtmToSip = (RtmToSip*)sipCallToRtc->GetUserData();
+				rtmToSip->SipEndCall();
+			}
+			else {
+				SipToRtm*sipToRtm = (SipToRtm*)sipCallToRtc->GetUserData();
+				sipToRtm->SipEndCall();
+			}
+		}
+	}
+
 	MgrEvent* mgrEvent = new MgrEvent();
-	mgrEvent->eType = ET_CloseSipAllToRtc;
+	mgrEvent->eType = ET_CloseRtcSipCall;
 	mgrEvent->mapInt["CallId"] = callId;
 
 	XAutoLock l(cs_mgr_event_);
@@ -219,19 +285,25 @@ void SipRtcMgr::OnRecvSipPeerAudio(int callId, const char*pData, int nLen, int n
 //* For  ARM::IRtmServiceEventHandler
 void SipRtcMgr::onLoginSuccess()
 {
+	printf("[RTM] onLoginSuccess \r\n");
 }
 void SipRtcMgr::onLoginFailure(ARM::LOGIN_ERR_CODE errorCode)
 {
+	printf("[RTM] onLoginFailure : %d \r\n", errorCode);
 }
 void SipRtcMgr::onLogout(ARM::LOGOUT_ERR_CODE errorCode)
 {
+	printf("[RTM] onLogout : %d \r\n", errorCode);
+}
+void SipRtcMgr::onConnectionStateChanged(ARM::CONNECTION_STATE state, ARM::CONNECTION_CHANGE_REASON reason)
+{
+	printf("[RTM] onConnectionStateChanged state: %d reason: %d\r\n", state, reason);
 }
 void SipRtcMgr::onPeersOnlineStatusChanged(const ARM::PeerOnlineStatus peersStatus[], int peerCount)
 {
 	for (int i = 0; i < peerCount; i++) {
 		const ARM::PeerOnlineStatus&peerStats = peersStatus[i];
 		if (!peerStats.isOnline) {
-			EndRtcCallToSip(peerStats.peerId);
 			EndSipCallToRtc(peerStats.peerId);
 		}
 	}
@@ -244,159 +316,69 @@ void SipRtcMgr::onMessageReceivedFromPeer(const char *peerId, const ARM::IMessag
 		const char*strCmd = GetJsonStr(jsonReqDoc, "Cmd", F_AT);
 		if (strcmp("EndCall", strCmd) == 0) {
 			// 对方挂断
-			EndRtcCallToSip(peerId);	
 			EndSipCallToRtc(peerId);
 		}
 	}
 }
 
 //* For ARM::IRtmCallEventHandler
-void SipRtcMgr::onLocalInvitationReceivedByPeer(ARM::ILocalCallInvitation *localInvitation)
-{
-}
-void SipRtcMgr::onLocalInvitationCanceled(ARM::ILocalCallInvitation *localInvitation)
-{// Sip呼叫Rtc，本地取消成功
-	EndSipCallToRtc(localInvitation->getCalleeId());
-}
-void SipRtcMgr::onLocalInvitationFailure(ARM::ILocalCallInvitation *localInvitation, ARM::LOCAL_INVITATION_ERR_CODE errorCode)
-{// Sip呼叫Rtc失败了
-	EndSipCallToRtc(localInvitation->getCalleeId());
-}
-void SipRtcMgr::onLocalInvitationAccepted(ARM::ILocalCallInvitation *localInvitation, const char *response)
-{// Sip呼叫Rtc，对方接听
-	XAutoLock l(cs_sip_call_to_rtc_);
-	MapSipCallToRtc::iterator itsr = map_sip_call_to_rtc_.begin();
-	while (itsr != map_sip_call_to_rtc_.end()) {
-		if (itsr->second->CalleeId().compare(localInvitation->getCalleeId()) == 0) {
-			sip_proxy_->RtcAcceptCall(itsr->first);
-			break;
-		}
-		itsr++;
-	}
-}
-void SipRtcMgr::onLocalInvitationRefused(ARM::ILocalCallInvitation *localInvitation, const char *response)
-{// Sip呼叫Rtc，对方拒绝
-	EndSipCallToRtc(localInvitation->getCalleeId());
-}
-void SipRtcMgr::onRemoteInvitationRefused(ARM::IRemoteCallInvitation *remoteInvitation)
-{//拒绝对方邀请成功
-}
-void SipRtcMgr::onRemoteInvitationAccepted(ARM::IRemoteCallInvitation *remoteInvitation){}
 // 对方发起呼叫
 void SipRtcMgr::onRemoteInvitationReceived(ARM::IRemoteCallInvitation *remoteInvitation)
-{
-	rapidjson::Document		jsonReqDoc;
-	JsonStr sprCopy(remoteInvitation->getContent(), strlen(remoteInvitation->getContent()));
-	if (!jsonReqDoc.ParseInsitu<0>(sprCopy.Ptr).HasParseError()) {
-		int nMode = GetJsonInt(jsonReqDoc, "Mode", F_AT);
-		bool bConference = GetJsonBool(jsonReqDoc, "Conference", F_AT);
-		std::string strChanId = GetJsonStr(jsonReqDoc, "ChanId", F_AT);
-		const char*strUserData = GetJsonStr(jsonReqDoc, "UserData", F_AT);
-		const char*strSipData = GetJsonStr(jsonReqDoc, "SipData", F_AT);
-		if (strChanId.length() == 0) {//* 主叫不带ChanId，则需要生成一个
-			XGetRandomStr(strChanId, 9);
-		}
-
-		if (HasRtcChan(strChanId)) {
-			remoteInvitation->setResponse("joined");
-			rtm_call_mgr_->refuseRemoteInvitation(remoteInvitation);
-			return;
-		}
-
-		bool newCall = false;
-		const std::string&strSipAccount = AllocSipAccount();
-		if (strSipAccount.length() > 0)
-		{
-			XAutoLock l(cs_rtc_call_to_sip_);
-			if (map_rtc_call_to_sip_.find(remoteInvitation->getCallerId()) == map_rtc_call_to_sip_.end()) {
-				newCall = true;
-				RtcCallToSip* rtcCallToSip = new RtcCallToSip(*this);
-				rtcCallToSip->SetCallerId(remoteInvitation->getCallerId());
-				if (bConference) {
-					ARM::IChannel*rtmChann = rtm_service_->createChannel(strChanId.c_str(), rtcCallToSip);
-					rtcCallToSip->SetIChannel(rtmChann);
-				}
-				InitRtcCallToSip(remoteInvitation->getCallerId(), strChanId, strSipAccount, strSipData);
-
-				map_rtc_call_to_sip_[remoteInvitation->getCallerId()] = rtcCallToSip;
-			}
-		}
-
-
-		if (newCall) {
-			rapidjson::Document		jsonDoc;
-			rapidjson::StringBuffer jsonStr;
-			rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStr);
-			jsonDoc.SetObject();
-			jsonDoc.AddMember("Mode", 1, jsonDoc.GetAllocator());
-			jsonDoc.AddMember("Conference", bConference, jsonDoc.GetAllocator());
-			jsonDoc.AddMember("ChanId", strChanId.c_str(), jsonDoc.GetAllocator());
-			jsonDoc.AddMember("SipNumber", strSipAccount.c_str(), jsonDoc.GetAllocator());
-			jsonDoc.AddMember("SipData", "", jsonDoc.GetAllocator());
-			jsonDoc.Accept(jsonWriter);
-			remoteInvitation->setResponse(jsonStr.GetString());
-
-			rtm_call_mgr_->acceptRemoteInvitation(remoteInvitation);
-			if (!bConference) {//* 只有P2P呼叫时才需要订阅对方的在线状态
-				{// Subscribe peer online status
-					long long reqId = 0;
-					const char* peerIds[1];
-					peerIds[0] = remoteInvitation->getCallerId();
-					rtm_service_->subscribePeersOnlineStatus(peerIds, 1, reqId);
-				}
-			}
-		}
-		else {
-			rtm_call_mgr_->refuseRemoteInvitation(remoteInvitation);
-			if (strSipAccount.length() > 0) {
-				FreeSipAccount(strSipAccount);
-			}
-		}
-	}
-	else {// 呼叫的Content中Json解析失败
-		remoteInvitation->setResponse("unkown");
-		rtm_call_mgr_->refuseRemoteInvitation(remoteInvitation);
-	}
-}
-void SipRtcMgr::onRemoteInvitationFailure(ARM::IRemoteCallInvitation *remoteInvitation, ARM::REMOTE_INVITATION_ERR_CODE errorCode)
-{
-}
-void SipRtcMgr::onRemoteInvitationCanceled(ARM::IRemoteCallInvitation *remoteInvitation)
-{
-	EndRtcCallToSip(remoteInvitation->getCallerId());
+{// Proxy禁止Rtm发起呼叫
+	remoteInvitation->setResponse("joined");
+	rtm_call_mgr_->refuseRemoteInvitation(remoteInvitation);
 }
 
-void SipRtcMgr::OnRtcCallToSipClosed(const std::string&strCallerId, int nCode)
+//* For RtmToSipEvent
+void SipRtcMgr::OnRtmToSipMakeCall(const std::string&strSessionId, const std::string&strCallerId, const std::string&strChanId, const std::string&strCallData, const std::string&strCallNumber, bool bPstn, RtmToSip*rtmToSip)
 {
 	MgrEvent* mgrEvent = new MgrEvent();
-	mgrEvent->eType = ET_CloseRtcAllToSip;
+	mgrEvent->eType = ET_InitRtcSipCall;
+	mgrEvent->mapStr["SessionId"] = strSessionId;
 	mgrEvent->mapStr["CallerId"] = strCallerId;
-	mgrEvent->mapInt["Code"] = nCode;
+	mgrEvent->mapStr["ChanId"] = strChanId;
+	mgrEvent->mapStr["CallData"] = strCallData;
+	mgrEvent->mapStr["CallNumber"] = strCallNumber;
+	mgrEvent->mapInt["Pstn"] = bPstn ? 1 : 0;
+	mgrEvent->ptr = rtmToSip;
+
+	XAutoLock l(cs_mgr_event_);
+	lst_mgr_event_.push_back(mgrEvent);
+}
+void SipRtcMgr::OnRtmToSipEndCall(int nCallId)
+{
+	MgrEvent* mgrEvent = new MgrEvent();
+	mgrEvent->eType = ET_CloseRtcSipCall;
+	mgrEvent->mapInt["CallId"] = nCallId;
 
 	XAutoLock l(cs_mgr_event_);
 	lst_mgr_event_.push_back(mgrEvent);
 }
 
-//* Internal function
-const std::string&SipRtcMgr::AllocSipAccount()
+//* For SipToRtmEvent
+void SipRtcMgr::OnSipToRtmAcceptCall(int nCallId, const std::string&strCalleeId, SipToRtm*sipToRtm)
 {
-	XAutoLock l(cs_sip_account_);
-	MapSipAccount::iterator itsr = map_sip_account_.begin();
-	while (itsr != map_sip_account_.end()) {
-		if (itsr->second == 0) {
-			itsr->second = 1;	// 使用标识
-			return itsr->first;
-		}
-		itsr++;
+
+	XAutoLock l(cs_sip_call_to_rtc_);
+	MapSipCallToRtc::iterator itsr = map_sip_call_to_rtc_.find(nCallId);
+	if (itsr != map_sip_call_to_rtc_.end()) {
+		sip_proxy_->RtcAcceptCall(nCallId);
 	}
-	return NullStr;
 }
-void SipRtcMgr::FreeSipAccount(const std::string&strSipAccount)
+void SipRtcMgr::OnSipToRtmEndCall(int nCallId)
 {
-	XAutoLock l(cs_sip_account_);
-	MapSipAccount::iterator itsr = map_sip_account_.find(strSipAccount);
-	if (itsr != map_sip_account_.end()) {
-		itsr->second = 0;	// 标识空闲
+	{
+		XAutoLock l(cs_sip_call_to_rtc_);
+		MapSipCallToRtc::iterator itsr = map_sip_call_to_rtc_.find(nCallId);
+		if (itsr != map_sip_call_to_rtc_.end()) {
+			ReleaseSipCallToRtc(itsr->first, itsr->second);
+
+			long long reqId = 0;
+			const char* peerIds[1];
+			peerIds[0] = itsr->second->CalleeId().c_str();
+			rtm_service_->unsubscribePeersOnlineStatus(peerIds, 1, reqId);
+			map_sip_call_to_rtc_.erase(itsr);
+		}
 	}
 }
 
@@ -423,71 +405,9 @@ void SipRtcMgr::EndSipCallToRtc(const std::string&strCalleeId)
 void SipRtcMgr::ReleaseSipCallToRtc(int callId, SipCallToRtc* rtcCallToSip)
 {// 线程同步
 	MgrEvent* mgrEvent = new MgrEvent();
-	mgrEvent->eType = ET_FreeSipAllToRtc;
+	mgrEvent->eType = ET_FreeRtcSipCall;
 	mgrEvent->ptr = rtcCallToSip;
 	mgrEvent->mapInt["CallId"] = callId;
-
-	XAutoLock l(cs_mgr_event_);
-	lst_mgr_event_.push_back(mgrEvent);
-}
-bool SipRtcMgr::HasRtcChan(const std::string&strChanId)
-{
-	XAutoLock l(cs_rtc_call_to_sip_);
-	MapRtcCallToSip::iterator itrr = map_rtc_call_to_sip_.begin();
-	while (itrr != map_rtc_call_to_sip_.end()) {
-		RtcCallToSip* rtcCallToSip = itrr->second;
-		if (rtcCallToSip->ChanId().compare(strChanId) == 0) {
-			return true;
-		}
-		itrr++;
-	}
-
-	return false;
-}
-void SipRtcMgr::EndRtcCallToSip(const std::string&strCallerId)
-{
-	bool bFindPeer = false;
-	bool bConference = false;
-	std::string strSipAccount;
-	{
-		XAutoLock l(cs_rtc_call_to_sip_);
-		if (map_rtc_call_to_sip_.find(strCallerId) != map_rtc_call_to_sip_.end()) {
-			bFindPeer = true;
-			RtcCallToSip* rtcCallToSip = map_rtc_call_to_sip_[strCallerId];
-			bConference = rtcCallToSip->IsConference();
-			strSipAccount = rtcCallToSip->SipAccount();
-			ReleaseRtcCallToSip(rtcCallToSip);
-
-			map_rtc_call_to_sip_.erase(strCallerId);
-		}
-	}
-	if (bFindPeer && !bConference) {
-		long long reqId = 0;
-		const char* peerIds[1];
-		peerIds[0] = strCallerId.c_str();
-		rtm_service_->unsubscribePeersOnlineStatus(peerIds, 1, reqId);
-	}
-	if (strSipAccount.length() > 0) {
-		FreeSipAccount(strSipAccount);
-	}
-}
-void SipRtcMgr::InitRtcCallToSip(const std::string&strCallerId, const std::string&strChanId, const std::string&strSipAccount, const std::string&strSipData)
-{
-	MgrEvent* mgrEvent = new MgrEvent();
-	mgrEvent->eType = ET_InitRtcAllToSip;
-	mgrEvent->mapStr["CallerId"] = strCallerId;
-	mgrEvent->mapStr["ChanId"] = strChanId;
-	mgrEvent->mapStr["SipAccount"] = strSipAccount;
-	mgrEvent->mapStr["SipData"] = strSipData;
-
-	XAutoLock l(cs_mgr_event_);
-	lst_mgr_event_.push_back(mgrEvent);
-}
-void SipRtcMgr::ReleaseRtcCallToSip(RtcCallToSip* rtcCallToSip)
-{// 线程同步
-	MgrEvent* mgrEvent = new MgrEvent();
-	mgrEvent->eType = ET_FreeRtcAllToSip;
-	mgrEvent->ptr = rtcCallToSip;
 
 	XAutoLock l(cs_mgr_event_);
 	lst_mgr_event_.push_back(mgrEvent);
@@ -505,90 +425,92 @@ void SipRtcMgr::ProcessMgrEvent()
 	}
 
 	if (mgrEvent != NULL) {
-		if (mgrEvent->eType == ET_InitRtcAllToSip) {
+		if (mgrEvent->eType == ET_InitRtcSipCall) {
+			const std::string&strSessionId = mgrEvent->mapStr["SessionId"];
 			const std::string&strCallerId = mgrEvent->mapStr["CallerId"];
 			const std::string&strChanId = mgrEvent->mapStr["ChanId"];
-			const std::string&strSipAccount = mgrEvent->mapStr["SipAccount"];
-			const std::string&strSipData = mgrEvent->mapStr["SipData"];
-			std::string strSipNumber = str_ivr_sip_account_;
-			std::string strUserId = strSipAccount;	// 默认的UserId使用分配的Sip号码
-			if (strSipData.size() > 0) {
-				rapidjson::Document		jsonReqDoc;
-				JsonStr sprCopy(strSipData.c_str(), strSipData.length());
-				if (!jsonReqDoc.ParseInsitu<0>(sprCopy.Ptr).HasParseError()) {
-					if (HasJsonStr(jsonReqDoc, "SipNumber")) {
-						strSipNumber = GetJsonStr(jsonReqDoc, "SipNumber", F_AT);
-						strUserId = strSipNumber;	// 如果有指定的Sip号码，则替换成指定的Sip号码(一般是多人呼叫中使用)
-					}
-				}
+			const std::string&strCallData = mgrEvent->mapStr["CallData"];
+			const std::string&strCallNumber = mgrEvent->mapStr["CallNumber"];
+			bool bPstn = false;
+			if (mgrEvent->mapInt.find("Pstn") != mgrEvent->mapInt.end()) {
+				bPstn = mgrEvent->mapInt["Pstn"] == 1;
 			}
-			XAutoLock l(cs_rtc_call_to_sip_);
-			if (map_rtc_call_to_sip_.find(strCallerId) != map_rtc_call_to_sip_.end()) {
-				RtcCallToSip* rtcCallToSip = map_rtc_call_to_sip_[strCallerId];
-				rtcCallToSip->InitSipAccount(str_sip_svr_ip_, n_sip_svr_port_, strSipAccount, str_sip_password_);
-				rtcCallToSip->StartTask(str_rtc_rtm_app_id_.c_str(), strChanId, strUserId, strSipNumber, strSipData.c_str());
+			RtmToSip*rtmToSip = (RtmToSip*)mgrEvent->ptr;
+			char strUrl[256];
+			if (bPstn) {// Pstn需要将账号换为CallNumber
+				if (str_pstn_svr_.length() > 0) {
+					sprintf(strUrl, "sip:%s%s@%s", str_pstn_prefix_.c_str(), strCallNumber.c_str(), str_pstn_svr_.c_str());
+				}
+				else {
+					sprintf(strUrl, "sip:%s%s@%s", str_pstn_prefix_.c_str(), strCallNumber.c_str(), SipSvrAddr().c_str());
+				}
 			}
 			else {
-				// 呼叫已销毁，需要释放Sip账号
-				FreeSipAccount(strSipAccount);		
+				sprintf(strUrl, "sip:%s@%s", rtmToSip->RtmAccount().c_str(), SipSvrAddr().c_str());
 			}
-		}
-		else if (mgrEvent->eType == ET_CloseRtcAllToSip) {
-			const std::string&strCallerId = mgrEvent->mapStr["CallerId"];
-			{
-				XAutoLock l(cs_rtc_call_to_sip_);
-				if (map_rtc_call_to_sip_.find(strCallerId) != map_rtc_call_to_sip_.end()) {
-					rapidjson::Document		jsonDoc;
-					rapidjson::StringBuffer jsonStr;
-					rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStr);
-					jsonDoc.SetObject();
-					jsonDoc.AddMember("Cmd", "EndCall", jsonDoc.GetAllocator());
-					jsonDoc.Accept(jsonWriter);
-					
-					ARM::IMessage *peerMsg = rtm_service_->createMessage(jsonStr.GetString());
-					rtm_service_->sendMessageToPeer(strCallerId.c_str(), peerMsg);
+			
+			//DisplayName for sip: https://blog.csdn.net/gredn/article/details/109214785
+			int nCallId = sip_proxy_->RtcMakeCall(strUrl, strCallNumber.c_str(), strCallData, false);
+			if (nCallId != -1) {
+				rtmToSip->SetSipCallId(strSessionId, nCallId);
 
-					peerMsg->release();
+				{
+					XAutoLock l(cs_sip_call_to_rtc_);
+					if (map_sip_call_to_rtc_.find(nCallId) == map_sip_call_to_rtc_.end()) {
+
+						SipCallToRtc* sipCallToRtc = new SipCallToRtc(nCallId, sip_proxy_);
+						sipCallToRtc->SetCalleeId(strCallerId);
+						sipCallToRtc->SetServer(str_rtc_svr_ip_, n_rtc_svr_port_);
+						sipCallToRtc->SetUserData(RtmCallToSip, rtmToSip);
+						sipCallToRtc->StartTask(str_rtc_rtm_app_id_, strChanId, rtmToSip->RtmAccount());
+
+						map_sip_call_to_rtc_[nCallId] = sipCallToRtc;
+					}
+				}
+
+				{// Subscribe peer online status
+					long long reqId = 0;
+					const char* peerIds[1];
+					peerIds[0] = strCallerId.c_str();
+					rtm_service_->subscribePeersOnlineStatus(peerIds, 1, reqId);
 				}
 			}
-			EndRtcCallToSip(strCallerId);
+			else {
+				rtmToSip->SipEndCall();
+			}
 		}
-		else if (mgrEvent->eType == ET_FreeRtcAllToSip) {
-			RtcCallToSip*rtcCallToSip = (RtcCallToSip*)mgrEvent->ptr;
-			rtcCallToSip->StopTask();
-			delete rtcCallToSip;
-			rtcCallToSip = NULL;
-		}
-		else if (mgrEvent->eType == ET_CloseSipAllToRtc) {
+		else if (mgrEvent->eType == ET_CloseRtcSipCall) {
 			int nCallId = mgrEvent->mapInt["CallId"];
 			std::string strCalleeId;
 			{
 				XAutoLock l(cs_sip_call_to_rtc_);
 				if (map_sip_call_to_rtc_.find(nCallId) != map_sip_call_to_rtc_.end()) {
 					SipCallToRtc* sipCallToRtc = map_sip_call_to_rtc_[nCallId];
-					strCalleeId = sipCallToRtc->CalleeId();
-
-					rapidjson::Document		jsonDoc;
-					rapidjson::StringBuffer jsonStr;
-					rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStr);
-					jsonDoc.SetObject();
-					jsonDoc.AddMember("Cmd", "EndCall", jsonDoc.GetAllocator());
-					jsonDoc.Accept(jsonWriter);
-
-					ARM::IMessage *peerMsg = rtm_service_->createMessage(jsonStr.GetString());
-					rtm_service_->sendMessageToPeer(strCalleeId.c_str(), peerMsg);
-
-					peerMsg->release();
+					strCalleeId = sipCallToRtc->CalleeId();		
 				}
 			}
 			if (strCalleeId.length() > 0) {
 				EndSipCallToRtc(strCalleeId);
 			}
-			
 		}
-		else if (mgrEvent->eType == ET_FreeSipAllToRtc) {
+		else if (mgrEvent->eType == ET_FreeRtcSipCall) {
 			SipCallToRtc*sipCallToRtc = (SipCallToRtc*)mgrEvent->ptr;
 			sipCallToRtc->StopTask();
+			if (sipCallToRtc->GetUserType() == SipCallToRtm) {
+				SipToRtm* sipToRtm = (SipToRtm*)sipCallToRtc->GetUserData();
+				sipToRtm->StopRtm();
+				delete sipToRtm;
+				sipToRtm = NULL;
+			}
+			else if (sipCallToRtc->GetUserType() == RtmCallToSip) {
+				RtmToSip*rtmToSip = (RtmToSip*)sipCallToRtc->GetUserData();
+				rtmToSip->SipEndCall();
+				//* 不能在這裡刪除，RtmToSip有自己管理的地方
+				/*rtmToSip->StopRtm();
+				delete rtmToSip;
+				rtmToSip = NULL;*/
+			}
+			
 			delete sipCallToRtc;
 			sipCallToRtc = NULL;
 

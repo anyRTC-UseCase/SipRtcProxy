@@ -164,7 +164,6 @@ void XGetRandomStr(std::string&sRandStr, int len) {
 		default:
 			sRandStr += ('0' + rand() % 10);
 			break;
-
 		}
 
 	}

@@ -22,10 +22,11 @@
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\RtcCall.cpp" />
-    <ClCompile Include="src\RtcCallToSip.cpp" />
+    <ClCompile Include="src\RtmToSip.cpp" />
     <ClCompile Include="src\SipCallToRtc.cpp" />
     <ClCompile Include="src\SipRtcMgr.cpp" />
     <ClCompile Include="src\SipRtcStats.cpp" />
+    <ClCompile Include="src\SipToRtm.cpp" />
     <ClCompile Include="src\Timer10Ms.cpp" />
     <ClCompile Include="src\XAutoLock.cpp" />
     <ClCompile Include="src\XCritSec.cpp" />
@@ -35,15 +36,24 @@
   <ItemGroup>
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\RtcCall.h" />
-    <ClInclude Include="src\RtcCallToSip.h" />
+    <ClInclude Include="src\RtmToSip.h" />
     <ClInclude Include="src\SipCallToRtc.h" />
     <ClInclude Include="src\SipRtcMgr.h" />
     <ClInclude Include="src\SipRtcStats.h" />
+    <ClInclude Include="src\SipToRtm.h" />
     <ClInclude Include="src\Timer10Ms.h" />
     <ClInclude Include="src\XAutoLock.h" />
     <ClInclude Include="src\XCritSec.h" />
     <ClInclude Include="src\XThreadBase.h" />
     <ClInclude Include="src\XUtil.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ARtcStrm\ARtcStrm.vcxproj">
+      <Project>{66b4453d-12bf-4413-8741-6a26446dd89d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\XAudCodec\XAudCodecDll.vcxproj">
+      <Project>{f05c3923-0ff0-4bc2-8b88-10f55e2f3e3f}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -99,19 +109,24 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>.\out\$(Configuration)\</OutDir>
+    <OutDir>..\out\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(OutDir)obj\$(ProjectName)\</IntDir>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\out\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(OutDir)obj\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>.\out\$(Configuration)\</OutDir>
+    <OutDir>..\out\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(OutDir)obj\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\out\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(OutDir)obj\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -129,7 +144,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>./lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SipCall.lib;ARtcStrm.lib;ARtmKit.lib;XAudCodecDll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SipCall.lib;ARtmKit.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if exist .\dll (copy .\dll\*.dll .\out\$(Configuration)\) else if exist ..\dll (copy ..\dll\*.dll .\out\$(Configuration)\)</Command>
@@ -172,7 +187,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SipCall.lib;ARtcStrm.lib;ARtmKit.lib;XAudCodecDll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SipCall.lib;ARtmKit.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if exist .\dll (copy .\dll\*.dll .\out\$(Configuration)\) else if exist ..\dll (copy ..\dll\*.dll .\out\$(Configuration)\)</Command>

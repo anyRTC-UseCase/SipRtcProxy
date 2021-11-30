@@ -23,11 +23,10 @@ public:
 	static void Init();
 	static void Deinit();
 
-	static SipCall*Create(SipCallEvent&event, const std::string&strDomain, int nPort, const std::string&strSipAccount, const std::string&strPwd);
+	static SipCall*Create(SipCallEvent&event, const std::string&strDomain, int nPort, const std::string&strSipAccount, const std::string&strPwd, const std::string&strDisplay);
 	static void Destory(SipCall*);
 
 
-	virtual void MakeCall(const std::string&strUri, const std::string&strPhoneNumber, bool bPSTN) = 0;
 	virtual void MakeCall(const std::string&strUri, const std::string&strPhoneNumber, const std::string&strArInfo, bool bPSTN) = 0;
 	virtual void EndCall() = 0;
 	virtual void SetAudioData(const char*pData, int nLen, int nSampleHz, int nChannels, uint32_t timestamp) = 0;
@@ -59,6 +58,7 @@ public:
 	static void Destory(SipProxy*);
 
 	virtual void RtcAcceptCall(int callId) = 0;
+	virtual int RtcMakeCall(const std::string&strUri, const std::string&strDisplayName, const std::string&strArInfo, bool bPSTN) = 0;
 	virtual void RtcEndCall(int callId) = 0;
 	virtual void EnablePstn(int callId, bool enable) = 0;
 	virtual void CallPstn(int callId, const std::string&strFxoAccnout, const std::string&strFxoUri) = 0;

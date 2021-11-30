@@ -25,6 +25,7 @@ public:
 	RtcCall();
 	virtual ~RtcCall(void);
 
+	void SetServer(const std::string&strAddr, int nPort);
 	void JoinRtc(const std::string&strAppId, const std::string&strChanId, const std::string&strUId);
 	void LeaveRtc();
 
@@ -47,6 +48,8 @@ public:
 private:
 	ARtS	*rtc_chan_;
 	bool	b_join_chan_;
+	std::string str_svr_addr_;
+	int		n_svr_port_;
 
 	char*	aud_rtc_2_sip_buffer_;
 	int		aud_sip_sample_hz_;

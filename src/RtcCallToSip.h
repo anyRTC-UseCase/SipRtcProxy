@@ -43,6 +43,8 @@ public:
 	const std::string&SipAccount() { return str_sip_account_; };
 	//* Sip的账号
 	const std::string&ChanId() { return str_chan_id_; };
+	//* CallerId
+	const std::string&CallerId() { return str_caller_id_; };
 	//* 设置多人呼叫的Channel
 	void SetIChannel(ARM::IChannel*rtmChannel);
 
