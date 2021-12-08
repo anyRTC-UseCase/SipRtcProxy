@@ -55,8 +55,19 @@ void RtmToSip::StopRtm()
 
 void RtmToSip::SipEndCall()
 {
-	XAutoLock l(cs_local_session_);
-	if (n_call_id_ != -1) {
+	std::string strEndCallerId;
+	{
+		XAutoLock l(cs_local_session_);
+		if (n_call_id_ != -1) {
+			strEndCallerId = str_caller_id_;
+
+			n_call_id_ = -1;
+			rtm_has_call_ = false;
+			str_caller_id_.clear();
+		}
+	}
+
+	if (strEndCallerId.length() > 0) {
 		rapidjson::Document		jsonDoc;
 		rapidjson::StringBuffer jsonStr;
 		rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStr);
@@ -65,13 +76,9 @@ void RtmToSip::SipEndCall()
 		jsonDoc.Accept(jsonWriter);
 
 		ARM::IMessage *peerMsg = rtm_service_->createMessage(jsonStr.GetString());
-		rtm_service_->sendMessageToPeer(str_caller_id_.c_str(), peerMsg);
+		rtm_service_->sendMessageToPeer(strEndCallerId.c_str(), peerMsg);
 
 		peerMsg->release();
-
-		n_call_id_ = -1;
-		rtm_has_call_ = false;
-		str_caller_id_.clear();
 	}
 }
 
@@ -88,15 +95,22 @@ void RtmToSip::SetSipCallId(const std::string&strSessionId, int nCallId)
 
 bool RtmToSip::ProcessMsg()
 {
-	XAutoLock l(cs_local_session_);
-	if (rtm_lost_connection_) {
-		rtm_lost_connection_ = false;
-		if (n_call_id_ != -1) {
-			callback_.OnRtmToSipEndCall(n_call_id_);
-			n_call_id_ = -1;
-			rtm_has_call_ = false;
-			str_caller_id_.clear();
+	bool bReconnect = false;
+	{
+		XAutoLock l(cs_local_session_);
+		if (rtm_lost_connection_) {
+			rtm_lost_connection_ = false;
+			if (n_call_id_ != -1) {
+				callback_.OnRtmToSipEndCall(n_call_id_);
+				n_call_id_ = -1;
+				rtm_has_call_ = false;
+				str_caller_id_.clear();
+			}
+			bReconnect = true;
 		}
+	}
+
+	if (bReconnect) {
 		rtm_service_->logout();
 		rtm_service_->login(NULL, str_rtm_account_.c_str());
 	}
