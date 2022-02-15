@@ -14,6 +14,7 @@
 #include "XUtil.h"
 #include "RtcLog.h"
 #include "SipRtcMgr.h"
+#include "IArRtmLog.h"
 
 #define SVR_VERSION "1.0.0.2.20200922"
 
@@ -44,7 +45,7 @@ int main(int argc, char*argv[])
 	{//* 读取Sip的配置
 		std::string strSvr = conf.GetValue("global", "sip_svr");
 		// Sip库初始化
-		SipCall::Init();
+		SipCall::Init(conf.GetIntVal("global", "sip_local_port", 5086));
 
 		if (conf.GetIntVal("proxy", "on") != 0) {// SipProxy - 打开
 			std::string strProxyAcc = conf.GetValue("proxy", "sip_account");
@@ -56,6 +57,8 @@ int main(int argc, char*argv[])
 
 	//* 初始化Rtc推拉流库
 	initARtSEngine();
+
+	ArRtm_OpenRtcLog("./sip_rtm.log/ar_rtm.log", 2, 10*1024);
 
 	if (conf.GetIntVal("rtm2sip", "on") != 0) {// RtmToSip - 开启
 		sipRtcMgr.StartRtm2Sip(conf.GetValue("rtm2sip", "acc_rule"));
@@ -74,6 +77,8 @@ int main(int argc, char*argv[])
 
 	SipCall::Deinit();
 	deinitARtSEngine();
+
+	ArRtm_CloseRtcLog();
 
 	return 0;
 }

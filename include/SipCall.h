@@ -20,7 +20,7 @@ public:
 class AR_EXPORT SipCall
 {
 public:
-	static void Init();
+	static void Init(int nPort);
 	static void Deinit();
 
 	static SipCall*Create(SipCallEvent&event, const std::string&strDomain, int nPort, const std::string&strSipAccount, const std::string&strPwd, const std::string&strDisplay);

@@ -154,6 +154,7 @@ void SipRtcMgr::StartRtm2Sip(const std::string&strAccRule)
 							if (map_rtm_to_sip_.find(pAccount) == map_rtm_to_sip_.end()) {
 								RtmToSip*rtmToSip = new RtmToSip(*this);
 								rtmToSip->StartRtm(pAccount);
+								map_rtm_to_sip_[pAccount] = rtmToSip;
 							}
 						}
 						delete[] pAccount;
@@ -165,6 +166,7 @@ void SipRtcMgr::StartRtm2Sip(const std::string&strAccRule)
 				if (map_rtm_to_sip_.find(strAccount) == map_rtm_to_sip_.end()) {
 					RtmToSip*rtmToSip = new RtmToSip(*this);
 					rtmToSip->StartRtm(strAccount);
+					map_rtm_to_sip_[strAccount] = rtmToSip;
 				}
 			}
 		}
@@ -173,6 +175,16 @@ void SipRtcMgr::StartRtm2Sip(const std::string&strAccRule)
 
 void SipRtcMgr::StopAll()
 {
+	XAutoLock l(cs_rtm_to_sip_);
+	while (map_rtm_to_sip_.size() > 0) {
+		MapRtmToSip::iterator itrr = map_rtm_to_sip_.begin();
+		RtmToSip*rtmToSip = itrr->second;
+		map_rtm_to_sip_.erase(itrr);
+		rtmToSip->StopRtm();
+		delete rtmToSip;
+		rtmToSip = NULL;
+	}
+
 	if (rtm_service_ != NULL) {
 		rtm_call_mgr_->release();
 		rtm_call_mgr_ = NULL;

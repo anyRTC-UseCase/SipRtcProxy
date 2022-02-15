@@ -112,7 +112,10 @@ bool RtmToSip::ProcessMsg()
 
 	if (bReconnect) {
 		rtm_service_->logout();
-		rtm_service_->login(NULL, str_rtm_account_.c_str());
+		int nRet = rtm_service_->login(NULL, str_rtm_account_.c_str());
+		if (nRet != 0) {
+			printf("RtmToSip(%s) do login: %d\r\n", str_rtm_account_.c_str(), nRet);
+		}
 	}
 	return true;
 }
@@ -135,7 +138,7 @@ void RtmToSip::onLogout(ARM::LOGOUT_ERR_CODE errorCode)
 }
 void RtmToSip::onConnectionStateChanged(ARM::CONNECTION_STATE state, ARM::CONNECTION_CHANGE_REASON reason)
 {
-	if (state == ARM::CONNECTION_STATE_DISCONNECTED) {
+	if (state == ARM::CONNECTION_STATE_DISCONNECTED && reason != ARM::CONNECTION_CHANGE_REASON_LOGOUT) {
 		rtm_logined_ = false;
 		rtm_lost_connection_ = true;
 	}
