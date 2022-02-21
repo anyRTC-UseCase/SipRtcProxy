@@ -103,7 +103,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>.\out\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(OutDir)obj\$(ProjectName)\</IntDir>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -114,7 +114,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>.\out\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(OutDir)obj\$(ProjectName)\</IntDir>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -140,7 +140,7 @@
       <AdditionalDependencies>SipCall.lib;ARtmKit.lib;ARtcStrm.lib;XAudCodecDll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>if exist .\dll (copy .\dll\*.dll .\out\$(Configuration)\) else if exist ..\dll (copy ..\dll\*.dll .\out\$(Configuration)\)</Command>
+      <Command>if exist .\dll (copy .\dll\*.dll .\out\$(Configuration)\$(Platform)\) else if exist ..\dll (copy ..\dll\*.dll .\out\$(Configuration)\$(Platform)\)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -184,7 +184,7 @@
       <AdditionalLibraryDirectories>./lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>if exist .\dll (copy .\dll\*.dll .\out\$(Configuration)\) else if exist ..\dll (copy ..\dll\*.dll .\out\$(Configuration)\)</Command>
+      <Command>if exist .\dll (copy .\dll\*.dll .\out\$(Configuration)\$(Platform)\) else if exist ..\dll (copy ..\dll\*.dll .\out\$(Configuration)\$(Platform)\)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
