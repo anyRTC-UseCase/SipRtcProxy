@@ -6,13 +6,15 @@
 
 ### 一、ARCall呼叫逻辑
 
-![image-20211116174231067](https://arcll.demo.agrtc.cn/arcall_md/image-20211116174231067.png)
+![20211130173754](https://mmbiz.qpic.cn/sz_mmbiz_jpg/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqR6IFwib3epEDVsyBcp1SrwrVhMgT21S9AqiaCAyPNYPvsIKQyLpaz1DYg/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+
+![20211130173807](https://mmbiz.qpic.cn/sz_mmbiz_jpg/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRQSJ0cz2c0vRjb5qBxV3JcoAOkWaySCFnEjpIDF06zDwyuMqbt4pDZg/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 ### 二、SRProxy转发逻辑
 
 #### 1、SRProxy能做什么？
 
-![image-20200825140210910](https://arcll.demo.agrtc.cn/arcall_md/image-20211116171641363.png)
+![image-20200825140210910](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqR676OBQgGTHNuOlUfnCgu9OEVsSRowVOyYiaYwg43b17es6IfhFbIJaw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
  从上图简单概括一下：SRProxy是实现RTC和SIP之间业务互通的桥梁，更是实现业务拓展的关键服务。
 
@@ -26,23 +28,23 @@
 
  下图描述了与主叫相关的呼叫邀请状态流转图：
 
-![img](https://arcll.demo.agrtc.cn/arcall_md/image-20211116101342706.jpg)
+![img](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRstgw3yxEIpHlbfktRgATLm97qugWiaRPPS6AF72IvlJPgJeMvMUrk9A/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
  **RemoteInvitationState**
 
  下图描述了与被叫相关的呼叫邀请状态流转图：
 
-![img](https://arcll.demo.agrtc.cn/arcall_md/image-20211116101342707.jpg)
+![img](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRngic6ro09KNsXDVrvWoCteL8Wib5YrVPKVtptmXMkhXskzqpAskxw6hw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 ##### 2、API 时序图
 
  **取消已发送呼叫邀请**
 
-![img](https://arcll.demo.agrtc.cn/arcall_md/image-20211116101342708.jpg)
+![img](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqR5uYE5bHqFzricEial2s1FFzLkfh4hnbJJ3AHYHAZxQ0bUUuPRcAvt3pg/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
  **接受／拒绝呼叫邀请**
 
-![img](https://arcll.demo.agrtc.cn/arcall_md/image-20211116101342709.jpg)
+![img](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRdLibMjB6HkRicrYjv86dVrjkiaxq9ibQ8m7fzheu5ibFr2vdxHUaFbq0j7g/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 **注意事项及限制条件**
 
@@ -56,11 +58,11 @@
 
 > 到[anyRTC官网](https://console.anyrtc.io/signin)注册一个开发者账号，并创建一个应用
 
-![image-20211116101342701](https://arcll.demo.agrtc.cn/arcall_md/image-20211116101342701.png)
+![image-20211116101342701](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRWkd1aQcyrjTGlicbUIiaVftv06PEfNwxciaVPYKenT80UskfDdNLHdepQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 ### 二、创建应用获取AppId
 
-![image-20211116102040742](https://arcll.demo.agrtc.cn/arcall_md/image-20211116102040742.png)
+![image-20211116102040742](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRbf8rcjEXIuZeCopWXXVwKfLiaqL3B8bib3JoMhdR3ebE5pM2icIeHlrCw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 
 
@@ -221,21 +223,23 @@ xml_int/mod_xml_curl
 ```
 [root@localhost freeswitch]# ./configure --with-python=/usr/bin/python2.7 --with-lua=/usr/bin/lua --enable-core-pgsql-support
 
-# 如果在spandsp位置报错，可以尝试执行下面这句
+# 如果在spandsp位置报错，可以尝试执行下面这句 在执行./configure
 [root@localhost freeswitch]# export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+
+# 编译freeswitch
 [root@localhost freeswitch]# make
 
-# make mod_cdr_pg_csv-install
+# 编译安装 mod_cdr_pg_csv-install
 [root@localhost freeswitch]# make mod_unimrcp-install
 
 # 如果需要空上模块的话
 [root@localhost freeswitch]# make mod_xml_curl-install
 
-# 安装音频文件（英文）
+# 编译安装音频文件（英文）
 [root@localhost freeswitch]# make cd-sounds-install
 [root@localhost freeswitch]# make cd-moh-install
 
-# 安装音频文件后在执行
+# 编译安装freeswitch
 [root@localhost freeswitch]# make install
 ```
 
@@ -359,16 +363,6 @@ freeswitch@localhost>reloadacl reloadxml
     <param name="apply-candidate-acl" value="candidate"/>
     <!-- 取消注释这一行（让前端可以得到早期媒体） -->
     <param name="enable-100rel" value="true"/>
-```
-
-`适配特定终端（以云翌通安卓SDK为例）`
-
-```
-[root@localhost ~]# vim /usr/local/freeswitch/conf/sip_profiles/internal.xml
-```
-
-```
-    <param name="user-agent-string" value="YunEasy"/>
 ```
 
 `拨号计划`
@@ -584,7 +578,8 @@ max_file_size=100
 
 ### 三、Linux - Centos7.0 + 已编译
 
-> 下载地址:  https://arcll.demo.agrtc.cn/arcall_md/SRProxy.tar.gz
+> 链接：https://pan.baidu.com/s/1QhhIsO3NEf9olX19xVxBKg
+> 提取码：l1f2
 
 `创建目录`
 
@@ -665,19 +660,19 @@ max_file_size=100
 >
 > 配置AppId一定要和SRProxy 配置文件一致
 
-![](https://arcll.demo.agrtc.cn/arcall_md/image-20211116171701358.png)
+![](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqR4fqsUj4aNuclvnrJicutrCrFD4cnzr1Hicmqr45k5bJTzrfKEYtdrCQw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 ### 二、登入sip（模拟电话 连接FreeSwitch）
 
-> 下载地址：https://arcll.demo.agrtc.cn/arcall_md/MicroSIP-3.8.1.exe
+> 下载地址：https://www.microsip.org/downloads
 >
 > 连接的freeswitch一定要和SRProxy配置的一致
 >
 > 添加账户  点击Menu--->Add account
 
-![image-20211129095550616](https://arcll.demo.agrtc.cn/arcall_md/image-20211129095550616.png)
+![image-20211129095550616](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRVbQAW8JuhW1icCgL7qPnXjqB0icjgpYVHm4ug4yDc65D732OSQryiaHPQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
-![image-20211116165838263](https://arcll.demo.agrtc.cn/arcall_md/image-20211116165838263.png)
+![image-20211116165838263](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRZzjjja37JMlc658NCjfOcKIJg2dek3gRMvS7y2IYzB2Y8X1Lz7SCPQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 
 
@@ -689,11 +684,11 @@ max_file_size=100
 
 
 
-![image-20211116171743377](https://arcll.demo.agrtc.cn/arcall_md/image-20211116171743377.png)
+![image-20211116171743377](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRiad6rHsgNBd5RjxI4U0ExaYEYpL53bHIvEwMXlRYyjupEgrPickuGeqw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 `呼叫成功`
 
-![image-20211116171641368](https://arcll.demo.agrtc.cn/arcall_md/image-20211116171641368.png)
+![image-20211116171641368](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRg7AJgbDPHmPnTaON69k5yf4nPmkN5Cdygp8ibbxZY3LGGibOQysibETnw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 ### 四、sip拨打ARCall
 
@@ -701,8 +696,8 @@ max_file_size=100
 >
 > 注意： 拨打设备 一定要有麦克风才可拨通
 
-![image-20211116170713481](https://arcll.demo.agrtc.cn/arcall_md/image-20211116170713481.png)
+![image-20211116170713481](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRRFBIeb1H3ShwwdGdnib0tSfE5zVTnt2Q5M4mm25ibuqFmkaDHjLWYL7A/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 `呼叫成功`
 
-![image-20211116170731114](https://arcll.demo.agrtc.cn/arcall_md/image-20211116170731114.png)
+![image-20211116170731114](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRib3Gt06zZEcjCa8hhJj14KdytibwDqG1AQicLqUxV4tT3Tar5JI9XAR8g/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
