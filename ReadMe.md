@@ -130,6 +130,8 @@ export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 [root@localhost sofia-sip]# make
 [root@localhost sofia-sip]# make install
 [root@localhost sofia-sip]# ldconfig
+    
+./bootstrap.sh -j &&  ./configure && make && make install && ldconfig
 
 # 单独下载libuuid源码
 [root@localhost ~]# cd /usr/local/src
@@ -139,6 +141,8 @@ export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 [root@localhost libuuid-1.0.3]#  ./configure
 [root@localhost libuuid-1.0.3]#  make
 [root@localhost libuuid-1.0.3]#  make install
+     
+tar -zxvf libuuid-1.0.3.tar.gz && cd libuuid-1.0.3 && ./configure && make && make install 
     
 # 编译安装cmake 3.8.2
 [root@localhost ~]# cd /usr/local/src
@@ -146,7 +150,7 @@ export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 [root@localhost src]# tar zxvf cmake-3.8.2.tar.gz
 [root@localhost cmake]# cd cmake-3.8.2
 [root@localhost cmake-3.8.2]# ./bootstrap
-[root@localhost cmake-3.8.2]# gmake
+[root@localhost cmake-3.8.2]# gmake -j8
 [root@localhost cmake-3.8.2]# gmake install
 
 # 安装libatomic
@@ -157,11 +161,11 @@ export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 [root@localhost src]# git clone https://github.com/signalwire/libks.git
 [root@localhost libks]# cmake .
 ## 如果出现uuid错误，就重新编译libuuid源码，还是uuid错误就退出终端重新进入在执行cmake .
-[root@localhost libks]# make
+[root@localhost libks]# make -j8
 [root@localhost libks]# make install
     
 # 安装fs依赖
-[root@localhost ~]# yum install -y http://files.freeswitch.org/freeswitch-release-1-6.noarch.rpm epel-release
+[root@localhost ~]# yum install -y http://files.freeswitch.org/freeswitch-release-1-10.noarch.rpm epel-release
 
 # 安装ffmpeg需要
 [root@localhost ~]# rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
@@ -184,204 +188,10 @@ export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 ### 三、安装FreeSwitch
 
 ```c
-# git下载freeswitch
-[root@localhost ~]# git clone -b v1.10 https://github.com/signalwire/freeswitch.git freeswitch
-# 如果github连接不顺畅的话，可以试试码云镜像仓库（更新慢1天）
-[root@localhost ~]# git clone -b v1.10 https://gitee.com/mirrors/FreeSWITCH.git freeswitch
-
-# 编译安装freeswitch前奏
-[root@localhost ~]# cd freeswitch
-[root@localhost freeswitch]# ./bootstrap.sh -j
-[root@localhost freeswitch]# vim modules.conf
-```
-
-`根据需要打开或关闭注释`
-
-```
-formats/mod_shout
-languages/mod_python
-#event_handlers/mod_cdr_pg_csv
-asr_tts/mod_unimrcp
-endpoints/mod_rtmp
-```
-
-`如果需要使用mod_xml_curl的话`
-
-```
-xml_int/mod_xml_curl
-```
-
-`给不需要的模块加上注释`
-
-```
-#applications/mod_av
-#applications/mod_signalwire
-```
-
-`编译安装`
-
-```
-[root@localhost freeswitch]# ./configure --with-python=/usr/bin/python2.7 --with-lua=/usr/bin/lua --enable-core-pgsql-support
-
-# 如果在spandsp位置报错，可以尝试执行下面这句 在执行./configure
-[root@localhost freeswitch]# export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-
-# 编译freeswitch
-[root@localhost freeswitch]# make
-
-# 编译安装 mod_cdr_pg_csv-install
-[root@localhost freeswitch]# make mod_unimrcp-install
-
-# 如果需要空上模块的话
-[root@localhost freeswitch]# make mod_xml_curl-install
-
-# 编译安装音频文件（英文）
-[root@localhost freeswitch]# make cd-sounds-install
-[root@localhost freeswitch]# make cd-moh-install
-
-# 编译安装freeswitch
-[root@localhost freeswitch]# make install
-```
-
-`额外安装音频文件（英文）`
-
-```
-[root@localhost freeswitch]# make uhd-sounds-install
-[root@localhost freeswitch]# make uhd-moh-install
-[root@localhost freeswitch]# make hd-sounds-install
-[root@localhost freeswitch]# make hd-moh-install
-[root@localhost freeswitch]# make sounds-install
-[root@localhost freeswitch]# make moh-install
-```
-
-`建立软连接`
-
-```
-[root@localhost freeswitch]# sudo ln -sf /usr/local/freeswitch/bin/freeswitch /usr/local/bin/
-[root@localhost freeswitch]# sudo ln -sf /usr/local/freeswitch/bin/fs_cli /usr/local/bin/
-```
-
-`配置mod`
-
-```
-[root@localhost ~]# vim /usr/local/freeswitch/conf/autoload_configs/modules.conf.xml
-```
-
-`在前3行开启(位置可能不对,能找到)`
-
-```
-    <load module="mod_console"/>
-    <load module="mod_logfile"/>
-    <load module="mod_xml_curl"/>
-```
-
-`打开注释`
-
-```
-    <load module="mod_python"/>
-    <load module="mod_shout"/>
-```
-
-`添加配置`
-
-```
-    <load module="mod_cdr_pg_csv"/>
-    <load module="mod_unimrcp"/>
-    <!--<load module="mod_vad"/>-->
-```
-
-`注释掉其他不需要的模块`
-
-```
-    <!-- <load module="mod_av"/> -->
-    <!-- <load module="mod_signalwire"/> -->
-```
-
-> 如果没有其它要求 `部署freeswitch`到这就可以结束了
-
-`配置acl白名单`
-
-```
-[root@localhost ~]# vim /usr/local/freeswitch/conf/autoload_configs/acl.conf.xml
-```
-
-```
-<!-- 根据自己网络的实际情况进行配置（照抄大概率无效） -->
-<list name="domains" default="deny">
-<!-- domain= is special it scans the domain from the directory to build t$ -->
-    <node type="allow" domain="$${domain}"/>
-<!-- ==================这里添加 本机ip   127.0.0.1 ======================== -->
-<!-- ==================这里添加 本机内网ip   ======================== -->
-<!-- ==================这里添加 本机外网ip   ======================== -->
-<!-- ==================这里添加 web内网ip   192.168.1.221======================== -->
-<!-- ==================这里添加 web外网ip   公网IP======================== -->
-<!-- ==================这里添加  runcall  内外网Ip======================== -->
-    <node type="allow" cidr="192.168.1.0/24"/>
-    <node type="allow" cidr="公网IP/32"/>
-</list>
-```
-
-```
-# 保存后，在freeswitch客户端，输入reloadacl reloadxml进行重新加载acl文件
-[root@localhost ~]# fs_cli
-freeswitch@localhost>reloadacl reloadxml
-```
-
-`配置ESL`
-
-```
-[root@localhost ~]# vim /usr/local/freeswitch/conf/autoload_configs/event_socket.conf.xml
-```
-
-```
-<configuration name="event_socket.conf" description="Socket Client">
-        <settings>
-            <param name="nat-map" value="false"/>
-            <!--ip 统一为0.0.0.0-->
-            <param name="listen-ip" value="0.0.0.0"/>
-            <!-- 端口号 默认8021 -->
-            <param name="listen-port" value="8021"/>
-            <!-- 密码统一Aicyber -->
-            <param name="password" value="Aicyber"/>
-            <!-- 允许acl白名单内的IP 访问 -->
-            <param name="apply-inbound-acl" value="domains"/>
-            <!--<param name="apply-inbound-acl" value="loopback.auto"/>-->
-            <!--<param name="stop-on-bind-error" value="true"/>-->
-        </settings>
-</configuration>
-```
-
-`适配WebRTC（JSSIP/SIPJS）`
-
-```
-[root@localhost ~]# vim /usr/local/freeswitch/conf/sip_profiles/internal.xml
-```
-
-```
-    <param name="apply-candidate-acl" value="rfc1918.auto"/>
-    <param name="apply-candidate-acl" value="localnet.auto"/>
-    <param name="apply-candidate-acl" value="candidate"/>
-    <!-- 取消注释这一行（让前端可以得到早期媒体） -->
-    <param name="enable-100rel" value="true"/>
-```
-
-`拨号计划`
-
-```
-[root@localhost ~]# vim /usr/local/freeswitch/conf/sip_profiles/internal.xml
-```
-
-```
-    <!-- 默认是public -->
-    <param name="context" value="default"/>
-```
-
-`关闭ipv6`
-
-```
-[root@localhost ~]# cd /usr/local/freeswitch/conf/sip_profiles
-[root@localhost sip_profiles]# mv internal-ipv6.xml internal-ipv6.xml.removed
-[root@localhost sip_profiles]# mv external-ipv6.xml external-ipv6.xml.removed
+[root@localhost ~]# cd /usr/local/
+[root@localhost local]# tar zxvf freeswitch.tar.gz
+[root@localhost local]# cd freeswitch/
+[root@localhost freeswitch]# ln -sf /usr/local/freeswitch/bin/freeswitch /usr/local/bin/
 ```
 
 ### 四：配置Sip的Proxy转发规则
@@ -390,7 +200,7 @@ freeswitch@localhost>reloadacl reloadxml
 
 ```xml
 <extension name="group_dial_sip_proxy">        
-    <condition field="destination_number" expression="^0(.*)$">                
+    <condition field="destination_number" expression="(^\d{4}$|^\d{3}$)">                
         <action application="set"><![CDATA[sip_h_X-Number=<sip:$1@${domain_name}>]]></action>       
         <action application="bridge" data="user/1000@192.168.x.xx"/>        
     </condition>
@@ -504,6 +314,21 @@ done
 ## 保存后，在freeswitch客户端，输入reloadxml进行重新加载.xml文件
 [root@localhost ~]# fs_cli
 freeswitch@localhost>reloadxml
+```
+
+### 八、问题
+
+1、公网部署没有声音及30秒自动挂断
+
+```
+## 修改配置文件
+vim conf/sip_profiles/internal.xml
+    <param name="ext-rtp-ip" value="autonat:XX:XX:XX:XX"/>		## 修改成公网IP
+    <param name="ext-sip-ip" value="autonat:XX:XX:XX:XX"/>		## 修改成公网IP
+    
+vim conf/sip_profiles/external.xml
+    <param name="ext-rtp-ip" value="XX:XX:XX:XX"/>				## 修改成公网IP
+    <param name="ext-sip-ip" value="XX:XX:XX:XX"/>				## 修改成公网IP
 ```
 
 ## **部署SRProxy**
