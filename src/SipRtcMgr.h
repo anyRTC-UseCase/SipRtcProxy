@@ -75,6 +75,7 @@ public:
 	virtual void OnSipIncomingCall(int callId, const std::string&strFromSipId, const std::string&strToSipId, int &nDualCall, const std::string&strCusData);
 	// Ö±½Óºô½ÐApp
 	virtual void OnSipCallApp(int callId, const std::string&strFromSipId, const std::string&strToSipId, const std::string&strCusData);
+	virtual void OnSipCallOK(int callId){};
 	virtual void OnSipEndCall(int callId);
 	virtual void OnSipNeedPstn(int callId);
 	virtual void OnSipReleasePstn(const std::string&strFxoAccount);

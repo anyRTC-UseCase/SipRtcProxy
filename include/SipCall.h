@@ -44,6 +44,7 @@ public:
 
 	virtual void OnSipIncomingCall(int callId, const std::string&strFromSipId, const std::string&strToSipId, int &nDualCall, const std::string&strCusData) = 0;
 	virtual void OnSipCallApp(int callId, const std::string&strFromSipId, const std::string&strToSipId, const std::string&strCusData) = 0;
+	virtual void OnSipCallOK(int callId) = 0;
 	virtual void OnSipEndCall(int callId) = 0;
 	virtual void OnSipNeedPstn(int callId) = 0;
 	virtual void OnSipReleasePstn(const std::string&strFxoAccount) = 0;
@@ -63,7 +64,7 @@ public:
 	virtual void EnablePstn(int callId, bool enable) = 0;
 	virtual void CallPstn(int callId, const std::string&strFxoAccnout, const std::string&strFxoUri) = 0;
 	virtual void SetRtcAudioToSip(int callId, const char*pData, int nLen, int nSampleHz, int nChannel) = 0;
-	
+
 protected:
 	SipProxy() {};
 	virtual ~SipProxy() {};
