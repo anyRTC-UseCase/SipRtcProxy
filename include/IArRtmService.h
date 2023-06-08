@@ -1812,6 +1812,10 @@ namespace ar {
           (const char*) token;
           (RENEW_TOKEN_ERR_CODE) errorCode;
       }
+
+	  virtual void onTokenWillExpire()
+	  {
+	  }
  
       /**
        Occurs when the RTM server detects that the RTM token has exceeded the 24-hour validity period and when the SDK is in the \ref ar::rtm::CONNECTION_STATE_RECONNECTING "CONNECTION_STATE_RECONNECTING" state.

@@ -5,7 +5,6 @@
 //  Copyright (c) 2019 AR.io. All rights reserved.
 //
 #pragma once
-
 #include "IArRtmService.h"
 
 namespace ar {
@@ -219,6 +218,20 @@ namespace ar {
       virtual const char *getContent() const = 0;
         
       /**
+       Sets the channel ID.
+       
+       @note To intercommunicate with the legacy AR Signaling SDK, you MUST set the channel ID. However, even if the callee successfully accepts the call invitation, the Agora RTM SDK does not join the channel of the specified channel ID. 
+       
+       @param channelId The channel ID to be set.
+       */
+      virtual void setChannelId(const char *channelId) = 0;
+        
+      /**
+       Gets the channel ID.
+       */
+      virtual const char *getChannelId() const = 0;
+        
+      /**
        Allows the caller to get the callee's response to the call invitation.
        
        @note The callee sets his/her response using the \ref ar::rtm::IRemoteCallInvitation::setResponse "setResponse" method.
@@ -272,6 +285,11 @@ namespace ar {
        @note The callee sets a response to the incoming call invitation using the \ref ar::rtm::IRemoteCallInvitation::setResponse "setResponse" method.
        */
       virtual const char *getResponse() const = 0;
+        
+      /**
+       Gets the channel ID.
+       */
+      virtual const char *getChannelId() const = 0;
       
       /**
        Allows the callee to get the state of the incoming call invitation.
@@ -451,7 +469,7 @@ namespace ar {
        - 0: Success.
        - <0: Failure. See #INVITATION_API_CALL_ERR_CODE for the error code.
        */
-      virtual int cancelLocalInvitation(ILocalCallInvitation *invitation) = 0;
+      virtual int cancelLocalInvitation(ILocalCallInvitation *invitation,const char*reason) = 0;
         
        /**
         Creates an ILocalCallInvitation object.
