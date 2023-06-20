@@ -229,11 +229,14 @@ void RtmToSip::onRemoteInvitationFailure(ARM::IRemoteCallInvitation *remoteInvit
 void RtmToSip::onRemoteInvitationCanceled(ARM::IRemoteCallInvitation *remoteInvitation)
 {
 	XAutoLock l(cs_local_session_);
-	if (n_call_id_ != -1 && str_caller_id_.compare(remoteInvitation->getCallerId()) == 0) {
-		callback_.OnRtmToSipEndCall(n_call_id_);
-		n_call_id_ = -1;
+	if (str_caller_id_.compare(remoteInvitation->getCallerId()) == 0) {
 		rtm_has_call_ = false;
 		str_caller_id_.clear();
+	}
+
+	if (n_call_id_ != -1) {
+		callback_.OnRtmToSipEndCall(n_call_id_);
+		n_call_id_ = -1;
 	}	
 }
 
