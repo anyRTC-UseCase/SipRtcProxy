@@ -70,11 +70,11 @@
 
 ### 一、准备
 
-一、系统
+1.1、系统
 
 > Centos 7.9 最好是纯净服务器 不然可能会存在依赖装不上或冲突情况
 
-二、防火墙
+1.2、防火墙
 
 > 参考freeswitch防火墙: https://freeswitch.org/confluence/display/FREESWITCH/Firewall 
 
@@ -99,12 +99,10 @@
 # 也可以直接关闭防火墙
 [root@localhost ~]# systemctl disable --now firewalld
 ```
-
 ### 二、安装FreeSwitch
-
 ```
 # 下载freeswitch
-[root@localhost ~]# wget https://github.com/anyRTC-UseCase/SipRtcProxy/releases/download/freeswitch-V10.0.9/freeswitch.tar.gz
+[root@localhost ~]# wget https://github.com/anyRTC-UseCase/SipRtcProxy/releases/download/freeswitch-V1.10.9/freeswitch.tar.gz
 
 # 解压freeswitch
 [root@localhost ~]# tar zxvf freeswitch.tar.gz
@@ -122,9 +120,7 @@ TARGET_PASSWORD="1234"						## SIP账号密码
 # 安装目录
 [root@localhost freeswitch]# cd /usr/local/freeswitch/
 ```
-
 ### 三、FreeSwitch自动增加号码
-
 >freeswitch是一个开源的呼叫中心服务，默认号码是1000-1019
 >只有20个号码时,无法满足时,需要增加号码使用
 
