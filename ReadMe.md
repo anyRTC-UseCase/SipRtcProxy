@@ -83,189 +83,47 @@
 [root@localhost ~]# firewall-cmd --permanent --add-port=5060/tcp
 # 开放sip端口udp协议
 [root@localhost ~]# firewall-cmd --permanent --add-port=5060/udp
-# 开放ws端口
-[root@localhost ~]# firewall-cmd --permanent --add-port=5066/tcp
-# 开放wss端口
-[root@localhost ~]# firewall-cmd --permanent --add-port=7443/tcp
+# 开放sip信令端口udp协议
+[root@localhost ~]# firewall-cmd --permanent --add-port=5080/tcp
+# 开放sip信令端口udp协议 
+[root@localhost ~]# firewall-cmd --permanent --add-port=5080/udp
+# 开放sip用于NAT穿越端口tcp协议
+[root@localhost ~]# firewall-cmd --permanent --add-port=3478-3479/tcp
+# 开放sip用于NAT穿越端口udp协议
+[root@localhost ~]# firewall-cmd --permanent --add-port=3478-3479/udp
 # 开放rtp端口（范围）
 [root@localhost ~]# firewall-cmd --permanent --add-port=16384-32768/udp
 # 让防火墙配置生效
 [root@localhost ~]# firewall-cmd --reload
 
 # 也可以直接关闭防火墙
-[root@localhost ~]# systemctl stop firewalld
-[root@localhost ~]# systemctl disable firewalld
+[root@localhost ~]# systemctl disable --now firewalld
 ```
 
-### 二、编译环境和FreeSwitch依赖库
-
-```c
-# 更新yum源
-[root@localhost ~]# yum update -y
-    
-# 安装lib相关需求依赖
-[root@localhost ~]# yum install -y yum-utils git gcc gcc-c++ automake autoconf libtool libtiff-devel libjpeg-devel openssl-devel vim
-
-# 添加环境变量
-[root@localhost ~]# vim /etc/profile
-export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-[root@localhost ~]# source /etc/profile
-    
-# 单独下载spandsp源码
-[root@localhost ~]# cd /usr/local/src
-[root@localhost src]# git clone https://github.com/freeswitch/spandsp.git
-[root@localhost src]# cd spandsp
-[root@localhost spandsp]# ./bootstrap.sh
-[root@localhost spandsp]# ./configure
-[root@localhost spandsp]# make
-[root@localhost spandsp]# make install
-[root@localhost spandsp]# ldconfig
-    
-# 单独下载sofia-sip（SIP协议栈）源码  尝试使用过码云上面的，但是freeswitch编译的时候一直报错需要sofia-sip
-[root@localhost ~]# cd /usr/local/src
-[root@localhost src]# git clone https://github.com/freeswitch/sofia-sip.git
-[root@localhost src]# cd sofia-sip
-[root@localhost sofia-sip]# ./bootstrap.sh -j
-[root@localhost sofia-sip]# ./configure
-[root@localhost sofia-sip]# make
-[root@localhost sofia-sip]# make install
-[root@localhost sofia-sip]# ldconfig
-    
-./bootstrap.sh -j &&  ./configure && make && make install && ldconfig
-
-# 单独下载libuuid源码
-[root@localhost ~]# cd /usr/local/src
-[root@localhost src]# wget https://jaist.dl.sourceforge.net/project/libuuid/libuuid-1.0.3.tar.gz
-[root@localhost src]# tar -zxvf libuuid-1.0.3.tar.gz
-[root@localhost src]# cd libuuid-1.0.3
-[root@localhost libuuid-1.0.3]#  ./configure
-[root@localhost libuuid-1.0.3]#  make
-[root@localhost libuuid-1.0.3]#  make install
-     
-tar -zxvf libuuid-1.0.3.tar.gz && cd libuuid-1.0.3 && ./configure && make && make install 
-    
-# 编译安装cmake 3.8.2
-[root@localhost ~]# cd /usr/local/src
-[root@localhost src]# wget https://cmake.org/files/v3.8/cmake-3.8.2.tar.gz
-[root@localhost src]# tar zxvf cmake-3.8.2.tar.gz
-[root@localhost cmake]# cd cmake-3.8.2
-[root@localhost cmake-3.8.2]# ./bootstrap
-[root@localhost cmake-3.8.2]# gmake -j8
-[root@localhost cmake-3.8.2]# gmake install
-
-# 安装libatomic
-[root@localhost ~]# yum install -y libatomic
-    
-# 单独下载libks源码（需要cmake 3.7.2以上版本）
-[root@localhost ~]# cd /usr/local/src
-[root@localhost src]# git clone https://github.com/signalwire/libks.git
-[root@localhost libks]# cmake .
-## 如果出现uuid错误，就重新编译libuuid源码，还是uuid错误就退出终端重新进入在执行cmake .
-[root@localhost libks]# make -j8
-[root@localhost libks]# make install
-    
-# 安装fs依赖
-[root@localhost ~]# yum install -y http://files.freeswitch.org/freeswitch-release-1-10.noarch.rpm epel-release
-
-# 安装ffmpeg需要
-[root@localhost ~]# rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
-[root@localhost ~]# rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
-
-# yum安装相关依赖
-[root@localhost ~]# yum install -y alsa-lib-devel bison broadvoice-devel bzip2 curl-devel libdb4-devel e2fsprogs-devel erlang flite-devel g722_1-devel gdbm-devel gnutls-devel ilbc2-devel ldns-devel libcodec2-devel libcurl-devel libedit-devel libidn-devel libmemcached-devel libogg-devel libsilk-devel libsndfile-devel libtheora-devel libuuid-devel libvorbis-devel libxml2-devel lua-devel lzo-devel ncurses-devel net-snmp-devel opus-devel pcre-devel perl perl-ExtUtils-Embed pkgconfig portaudio-devel postgresql-devel python-devel python-devel soundtouch-devel speex-devel sqlite-devel unbound-devel unixODBC-devel which yasm zlib-devel libshout-devel libmpg123-devel lame-devel rpm-build libX11-devel libyuv-devel swig wget ffmpeg ffmpeg-devel
-
-# 安装python组件
-[root@localhost ~]# curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip-2.7.py
-[root@localhost ~]# python get-pip-2.7.py
-    
-# 验证pip是否安装成功
-[root@localhost ~]# pip --version
-    
-# pip安装python组件
-[root@localhost ~]# pip install pydub python-ESL pika dbutils
-```
-
-### 三、安装FreeSwitch
-
-```c
-[root@localhost ~]# cd /usr/local/
-[root@localhost local]# tar zxvf freeswitch.tar.gz
-[root@localhost local]# cd freeswitch/
-[root@localhost freeswitch]# ln -sf /usr/local/freeswitch/bin/freeswitch /usr/local/bin/
-```
-
-### 四：配置Sip的Proxy转发规则
-
-> [root@localhost ~]#  vim /usr/local/freeswitch/conf/dialplan/default.xml    ##配置文件中加入以下配置，多个SRProxy 就配置多个号码
-
-```xml
-<extension name="group_dial_sip_proxy">        
-    <condition field="destination_number" expression="(^\d{4}$|^\d{3}$)">                
-        <action application="set"><![CDATA[sip_h_X-Number=<sip:$1@${domain_name}>]]></action>       
-        <action application="bridge" data="user/1000@192.168.x.xx"/>        
-    </condition>
-</extension>
-```
-
-> 意思是：如果呼叫的SIP号码前面加0，则自动路由到1000号码上；这个1000号码是SRProxy中配置的Proxy账号，这样SRProxy就可以收到Sip外呼的请求，从发对RTC发起呼叫。
-
-> 注：配置中192.168.x.xx是你机器的真实IP，有公网EIP填公网EIP地址，局域网则填局域网IP地址。
-
-### 五、FreeSwitch呼叫时间修改
-
-> 安装完freeswitch发现进行sip呼叫的时候出现差不多延时10秒左右才能接收呼叫  主要原因是freeswitch中默认配置了延时时间 只需要注释掉就能解决这个问题
-
-> [root@localhost freeswitch]# vim /usr/local/freeswitch/conf/dialplan/default.xml
-
-```xml
-      <condition field="${default_password}" expression="^1234$" break="never">
-        <action application="log" data="CRIT WARNING WARNING WARNING WARNING WARNING WARNING WARNI    NG WARNING WARNING "/>
-        <action application="log" data="CRIT Open $${conf_dir}/vars.xml and change the default_pas    sword."/>
-        <action application="log" data="CRIT Once changed type 'reloadxml' at the console."/>
-        <action application="log" data="CRIT WARNING WARNING WARNING WARNING WARNING WARNING WARNI    NG WARNING WARNING "/>
-	<!--<action application="sleep" data="10000"/>-->  #注释这一行即可
-      </condition>
-```
-
-`启动生效`
-
-### 六、FreeSwitch显示主叫号码
-
->[root@localhost freeswitch]# cd /usr/local/freeswitch/conf/directory/default
->[root@localhost default]# vim 1000.xml
-
-```xml
-<include>
-  <user id="1000">
-    <params>
-      <param name="password" value="$${default_password}"/>
-      <param name="vm-password" value="1000"/>
-    </params>
-    <variables>
-      <variable name="toll_allow" value="domestic,international,local"/>
-      <variable name="accountcode" value="1000"/>
-      <variable name="user_context" value="default"/>
-      <!--<variable name="effective_caller_id_name" value="Extension 1000"/>--> # 注释
-      <!--<variable name="effective_caller_id_number" value="1000"/>-->	# 注释这两行
-      <variable name="outbound_caller_id_name" value="$${outbound_caller_name}"/>
-      <variable name="outbound_caller_id_number" value="$${outbound_caller_id}"/>
-      <variable name="callgroup" value="techsupport"/>
-    </variables>
-  </user>
-</include>
-```
-
-`启动生效`
+### 二、安装FreeSwitch
 
 ```
-## 后台快速启动
-[root@localhost ~]# freeswitch -nc -nonat
+# 下载freeswitch
+[root@localhost ~]# wget https://github.com/anyRTC-UseCase/SipRtcProxy/releases/download/freeswitch-V10.0.9/freeswitch.tar.gz
 
-## 控制台启动（退出即关闭服务）
-[root@localhost ~]# freeswitch
+# 解压freeswitch
+[root@localhost ~]# tar zxvf freeswitch.tar.gz
+[root@localhost ~]# cd freeswitch
+    
+# 修改脚本配置
+[root@localhost freeswitch]# vim freeswitch_install
+TARGET_DIR=/usr/local						## 服务目录位置--一般默认
+TARGET_WAN_IP="127.0.0.1"					## 公网环境写公网IP，内网环境写内网IP
+TARGET_PASSWORD="1234"						## SIP账号密码
+
+# 安装freeswitch
+[root@localhost freeswitch]# ./freeswitch_install.sh
+    
+# 安装目录
+[root@localhost freeswitch]# cd /usr/local/freeswitch/
 ```
 
-### 七、FreeSwitch自动增加号码
+### 三、FreeSwitch自动增加号码
 
 >freeswitch是一个开源的呼叫中心服务，默认号码是1000-1019
 >只有20个号码时,无法满足时,需要增加号码使用
@@ -316,19 +174,19 @@ done
 freeswitch@localhost>reloadxml
 ```
 
-### 八、问题
+### 四、问题
 
 1、公网部署没有声音及30秒自动挂断
 
 ```
 ## 修改配置文件
 vim conf/sip_profiles/internal.xml
-    <param name="ext-rtp-ip" value="autonat:XX:XX:XX:XX"/>		## 修改成公网IP
-    <param name="ext-sip-ip" value="autonat:XX:XX:XX:XX"/>		## 修改成公网IP
+    <param name="ext-rtp-ip" value="autonat:127.0.0.1"/>		## 修改成公网IP
+    <param name="ext-sip-ip" value="autonat:127.0.0.1"/>		## 修改成公网IP
     
 vim conf/sip_profiles/external.xml
-    <param name="ext-rtp-ip" value="XX:XX:XX:XX"/>				## 修改成公网IP
-    <param name="ext-sip-ip" value="XX:XX:XX:XX"/>				## 修改成公网IP
+    <param name="ext-rtp-ip" value="127.0.0.1"/>				## 修改成公网IP
+    <param name="ext-sip-ip" value="127.0.0.1"/>				## 修改成公网IP
 ```
 
 ## **部署SRProxy**
