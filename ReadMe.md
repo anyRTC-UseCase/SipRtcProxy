@@ -116,9 +116,13 @@ TARGET_PASSWORD="1234"						## SIP账号密码
 
 # 安装freeswitch
 [root@localhost freeswitch]# ./freeswitch_install.sh
+
 # 卸载freeswitch
 [root@localhost freeswitch]# ./freeswitch_install.sh -u
-    
+
+# 等待一段时间查看端口是否启动
+[root@localhost ~]# netstat -untpl | grep freeswitch
+
 # 安装目录
 [root@localhost freeswitch]# cd /usr/local/freeswitch/
 ```
