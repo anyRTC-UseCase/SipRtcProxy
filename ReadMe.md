@@ -126,6 +126,15 @@ TARGET_PASSWORD="1234"						## SIP账号密码
 # 安装目录
 [root@localhost freeswitch]# cd /usr/local/freeswitch/
 ```
+`其它相关命令`
+```
+进入控制台：fs_cli
+开机启动：systemctl enable freeswitch.service
+启动服务：systemctl start freeswitch.service
+重启服务：systemctl restart freeswitch.service
+结束服务：systemctl stop freeswitch.service
+关闭开机自启动： systemctl disable freeswitch.service
+```
 ### 三、FreeSwitch自动增加号码
 >freeswitch是一个开源的呼叫中心服务，默认号码是1000-1019
 >只有20个号码时,无法满足时,需要增加号码使用
