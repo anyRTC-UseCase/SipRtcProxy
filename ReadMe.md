@@ -112,9 +112,10 @@
     
 # 修改脚本配置
 [root@localhost freeswitch]# vim freeswitch_install
-TARGET_DIR=/usr/local						## 服务目录位置--一般默认
 TARGET_WAN_IP="127.0.0.1"					## 公网环境写公网IP，内网环境写内网IP
 TARGET_PASSWORD="1234"						## SIP账号密码
+TARGET_RTP_START_PORT=16384					## RTP开始端口
+TARGET_RTP_END_PORT=32768					## RTP结束端口
 
 # 安装freeswitch
 [root@localhost freeswitch]# ./freeswitch_install.sh
