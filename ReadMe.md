@@ -1,26 +1,26 @@
-## SRProxy介绍
+## 一、SRProxy介绍
 
 目前 WebRTC 协议跟 SIP 协议互通场景主要运用在企业呼叫中心、企业内部通信、电话会议（PSTN）、智能门禁等场景，要想让 WebRTC 与 SIP 互通，要解决两个层面的问题：**信令层**和**媒体层**。两个网络使用的信令机制不同，所以要进行信令的转换，才能完成媒体的协商，建立会话。媒体层要完成编码的转换，以及 rtp/srtp 转换等功能。anyRTC 开源 SRProxy 网关，解决了WebRTC与SIP的协议转换，配合 anyRTC 开源的 ARCall 音视频呼叫 demo,演示如何通过 App/Web 端呼叫落地，下文就如何使用部署 SRProxy  网关，以及如何跟ARCall 互通进行展开，熟悉如何使用后，可集成SDK到自己的应用中，配合自身业务做对应的场景。
 
-## 呼叫流程
+## 二、呼叫流程
 
-### 一、ARCall呼叫逻辑
+### 2.1、ARCall呼叫逻辑
 
 ![20211130173754](https://mmbiz.qpic.cn/sz_mmbiz_jpg/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqR6IFwib3epEDVsyBcp1SrwrVhMgT21S9AqiaCAyPNYPvsIKQyLpaz1DYg/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 ![20211130173807](https://mmbiz.qpic.cn/sz_mmbiz_jpg/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRQSJ0cz2c0vRjb5qBxV3JcoAOkWaySCFnEjpIDF06zDwyuMqbt4pDZg/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
-### 二、SRProxy转发逻辑
+### 2.2、SRProxy转发逻辑
 
-#### 1、SRProxy能做什么？
+#### 2.2.1 SRProxy能做什么？
 
 ![image-20200825140210910](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqR676OBQgGTHNuOlUfnCgu9OEVsSRowVOyYiaYwg43b17es6IfhFbIJaw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
  从上图简单概括一下：SRProxy是实现RTC和SIP之间业务互通的桥梁，更是实现业务拓展的关键服务。
 
-#### 2、呼叫流程
+#### 2.2.2、呼叫流程
 
-##### 1、状态流转图
+##### 2.2.2.1、状态流转图
 
  呼叫邀请中，主叫可以通过 [LocalInvitation] 对象提供的 [getState] 方法查询当前呼叫邀请的有关状态；被叫可以通过 SDK 返回的 [RemoteInvitation]对象的 [getState]方法查询当前呼叫邀请的相关状态。
 
@@ -36,7 +36,7 @@
 
 ![img](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRngic6ro09KNsXDVrvWoCteL8Wib5YrVPKVtptmXMkhXskzqpAskxw6hw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
-##### 2、API 时序图
+##### 2.2.2.2、API 时序图
 
  **取消已发送呼叫邀请**
 
@@ -52,31 +52,31 @@
 - 被叫设置的呼叫邀请响应 response 的字符串长度：8 KB，格式为 UTF-8。
 - 呼叫邀请的 channel ID 仅用于与老信令互通时设置。设置的 channel ID 必须与老信令 SDK 设置相同才能实现互通。字符串长度：64 字节，格式为 UTF-8。
 
-## **创建一个应用**
+## 三、创建一个应用
 
-### 一、注册账号
+### 3.1、注册账号
 
-> 到[anyRTC官网](https://console.anyrtc.io/signin)注册一个开发者账号，并创建一个应用
+到[anyRTC官网](https://console.anyrtc.io/signin)注册一个开发者账号，并创建一个应用
 
 ![image-20211116101342701](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRWkd1aQcyrjTGlicbUIiaVftv06PEfNwxciaVPYKenT80UskfDdNLHdepQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
-### 二、创建应用获取AppId
+### 3.2、创建应用获取AppId
 
 ![image-20211116102040742](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRbf8rcjEXIuZeCopWXXVwKfLiaqL3B8bib3JoMhdR3ebE5pM2icIeHlrCw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
 
 
-## **部署freeswitch**
+## 四、部署freeswitch
 
-### 一、准备
+### 4.1、准备
 
-1.1、系统
+1、系统
 
-> Centos 7.9 最好是纯净服务器 不然可能会存在依赖装不上或冲突情况
+`Centos 7.9 最好是纯净服务器 不然可能会存在依赖装不上或冲突情况`
 
-1.2、防火墙
+2、防火墙
 
-> 参考freeswitch防火墙: https://freeswitch.org/confluence/display/FREESWITCH/Firewall 
+参考freeswitch防火墙: https://freeswitch.org/confluence/display/FREESWITCH/Firewall 
 
 ```
 # 开放sip端口tcp协议
@@ -99,7 +99,9 @@
 # 也可以直接关闭防火墙
 [root@localhost ~]# systemctl disable --now firewalld
 ```
-### 二、安装FreeSwitch
+
+### 4.2、安装FreeSwitch
+
 ```
 # 下载freeswitch
 [root@localhost ~]# wget https://github.com/anyRTC-UseCase/SipRtcProxy/releases/download/freeswitch-V1.10.9/freeswitch.tar.gz
@@ -126,7 +128,9 @@ TARGET_PASSWORD="1234"						## SIP账号密码
 # 安装目录
 [root@localhost freeswitch]# cd /usr/local/freeswitch/
 ```
+
 `其它相关命令`
+
 ```
 进入控制台：fs_cli
 开机启动：systemctl enable freeswitch.service
@@ -135,14 +139,15 @@ TARGET_PASSWORD="1234"						## SIP账号密码
 结束服务：systemctl stop freeswitch.service
 关闭开机自启动： systemctl disable freeswitch.service
 ```
-### 三、FreeSwitch自动增加号码
->freeswitch是一个开源的呼叫中心服务，默认号码是1000-1019
->只有20个号码时,无法满足时,需要增加号码使用
 
-> [root@localhost ~]# vim /usr/local/freeswitch/conf/dialplan/default.xml
+### 4.3、FreeSwitch自动增加号码
+
+freeswitch是一个开源的呼叫中心服务，默认号码是1000-1019
+只有20个号码时,无法满足时,需要增加号码使用
 
 ```xml
- <extension name="Local_Extension">
+[root@localhost freeswitch]# vim /usr/local/freeswitch/conf/dialplan/default.xml
+<extension name="Local_Extension">
    <!--<condition field="destination_number" expression="^(10[01][0-9])$">--> # 注释这一行 或者修改这一行
    <condition field="destination_number" expression="^(1[0-9][0-9][0-9]|20[0-9][0-9])$"> # 重新定义号码段 段为1000~2099
      <action application="export" data="dialed_extension=$1"/>
@@ -150,9 +155,8 @@ TARGET_PASSWORD="1234"						## SIP账号密码
      <action application="bind_meta_app" data="1 b s execute_extension::dx XML features"/>
 ```
 
-> [root@localhost ~]# freeswitch.sh
-
 ```shell
+[root@localhost freeswitch]# freeswitch.sh
 #!/bin/bash
 # Author:  lzy
 # data：  2021-11-16
@@ -177,64 +181,66 @@ done
 
 ```c
 ## 脚本授权 执行脚本
-[root@localhost ~]# chmod +x freeswitch.sh
-[root@localhost ~]# ./freeswitch.sh
+[root@localhost freeswitch]# chmod +x freeswitch.sh
+[root@localhost freeswitch]# ./freeswitch.sh
 
 ## 保存后，在freeswitch客户端，输入reloadxml进行重新加载.xml文件
-[root@localhost ~]# fs_cli
+[root@localhost freeswitch]# fs_cli
 freeswitch@localhost>reloadxml
 ```
 
-### 四、问题
+### 4.4、问题
 
-1、公网部署没有声音及30秒自动挂断
+公网部署没有声音及30秒自动挂断
 
 ```
 ## 修改配置文件
-vim conf/sip_profiles/internal.xml
+[root@localhost freeswitch]# vim conf/sip_profiles/internal.xml
     <param name="ext-rtp-ip" value="autonat:127.0.0.1"/>		## 修改成公网IP
     <param name="ext-sip-ip" value="autonat:127.0.0.1"/>		## 修改成公网IP
     
-vim conf/sip_profiles/external.xml
+[root@localhost freeswitch]# vim conf/sip_profiles/external.xml
     <param name="ext-rtp-ip" value="127.0.0.1"/>				## 修改成公网IP
     <param name="ext-sip-ip" value="127.0.0.1"/>				## 修改成公网IP
 ```
 
-## **部署SRProxy**
+## 五、部署SRProxy
 
-> 源码地址：https://github.com/anyRTC-UseCase/SipRtcProxy
+`源码地址：https://github.com/anyRTC-UseCase/SipRtcProxy`
 
-### 一、Windows 7 +
+### 5.1、Windows 7 +
 
  双击：SipRtcProxy.sln ，直接运行
 
  项目是VS2017创建，VS2015，VS2019可自行验证。
 
-### 二、Linux - Centos7.0 +
+### 5.2、Linux - Centos7.0 +
 
 ` 下载代码到本地`
 
-> [root@localhost ~]# git clone https://github.com/anyRTC-UseCase/SipRtcProxy.git
->
-> [root@localhost ~]# cd   SipRtcProxy.git
+```
+[root@localhost ~]# git clone https://github.com/anyRTC-UseCase/SipRtcProxy.git
+[root@localhost ~]# cd   SipRtcProxy.git
+```
 
 `环境变量`
 
-```shell
+```c
 [root@localhost SipRtcProxy]# vim  /etc/profile
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/SipRtcProxy/so/
 [root@localhost SipRtcProxy]# source /etc/profile
 ```
 
- `执行`
+`编译`
 
-> [root@localhost SipRtcProxy]#  make
+```c
+[root@localhost SipRtcProxy]#  make
+```
 
 `配置文件`
 
->[root@localhost SipRtcProxy]#  vim  rtx.conf
-
 ```c
+[root@localhost SipRtcProxy]#  vim  rtx.conf
 [global]
 appid=XXXXX			             ## 创建应用时注册的Appid 
 sip_svr=IP:5060      			 ## freeswitch_IP地址和端口，目前仅支持freeswitch默认端口
@@ -266,37 +272,35 @@ file=rtc_sip.log
 max_file_size=100
 ```
 
-` 前台启动`
+```c
+## 前台启动
+[root@localhost SipRtcProxy]#  ./SRProxy rtx.conf  
+```
 
-> [root@localhost SipRtcProxy]#  ./SRProxy rtx.conf  
-
-### 三、Linux - Centos7.0 + 已编译
+### 5.3、Linux - Centos7.0 + 已编译
 
 > 链接：https://pan.baidu.com/s/1QhhIsO3NEf9olX19xVxBKg
 > 提取码：l1f2
 
-`创建目录`
+```
+## 创建目录
+[root@localhost ~]# mkdir  /usr/local/ar4/
 
->[root@localhost ~]# mkdir  /usr/local/ar4/
->
->[root@localhost ~]# tar zxvf SRProxy.tar.gz
+## 将SRProxy.tar.gz放到/usr/local/ar4/解压
+[root@localhost ~]# cd /usr/local/ar4/
+[root@localhost ar4]# tar zxvf SRProxy.tar.gz
 
-`将srproxy.tar.gz放到/usr/local/ar4/解压`
+## 将rtx.sh脚本放入/usr/bin下面并赋予权限
+[root@localhost ar4]# mv rtx.sh /usr/bin/
+[root@localhost ar4]# chmod +x /usr/bin/rtx.sh
 
-> [root@localhost ~]# cd /usr/local/ar4/
->
-> [root@localhost ar4]# tar zxvf srproxy.tar.gz
-
-`将rtx.sh脚本放入/usr/bin下面并赋予权限`
-
-> [root@localhost ~]#  chmod +x /usr/bin/rtx.sh
-
-`进入目录`
-
-> [root@localhost ~]#  cd /usr/local/ar4/srproxy/
-> [root@localhost srproxy]#  vim conf/rtx.conf
+## 进入目录
+[root@localhost ar4]# cd srproxy/
+```
 
 ```c
+## 修改配置文件
+[root@localhost srproxy]#  vim conf/rtx.conf
 [global]
 appid=XXXXX			             ## 创建应用时注册的Appid 
 sip_svr=IP:5060      			 ## freeswitch_IP地址和端口，目前仅支持freeswitch默认端口
@@ -328,41 +332,42 @@ file=rtc_sip.log
 max_file_size=100
 ```
 
-`配置没有问题后启动SRProxy`
+```
+## 配置没有问题后启动SRProxy
+## 启动
+[root@localhost srproxy]# rtx.sh start SRProxy
 
-> 进入目录：
->
-> [root@localhost ~]# cd /usr/local/ar4/srproxy/
->
-> [root@localhost srproxy]#  rtx.sh start SRProxy 			## 启动
->
-> [root@localhost srproxy]#  rtx.sh restart SRProxy 		## 重启
->
-> [root@localhost srproxy]#  rtx.sh stop SRProxy 			## 停止
+## 重启
+[root@localhost srproxy]# rtx.sh restart SRProxy
+
+## 停止
+[root@localhost srproxy]# rtx.sh stop SRProxy
+```
 
 `添加任务计划 实现自启动`
 
-> [root@localhost ~]# crontab -e
+```
+[root@localhost srproxy]# crontab -e
+*/1 * * * * sh /usr/local/ar4/srproxy/moni_srp.sh >/dev/null 2>&1
+```
 
-> */1 * * * * sh /usr/local/ar4/srproxy/moni_srp.sh >/dev/null 2>&1
+## 六、Demo演示
 
-## Demo演示
+### 6.1、登入ARCall  （连接公网RTC、RTM）
 
-### 一、登入ARCall  （连接公网RTC、RTM）
+`ARCall源码下载地址： https://github.com/anyRTC-UseCase/ARCall`
 
-> ARCall源码下载地址： https://github.com/anyRTC-UseCase/ARCall
->
-> 配置AppId一定要和SRProxy 配置文件一致
+`配置AppId一定要和SRProxy 配置文件一致`
 
 ![](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqR4fqsUj4aNuclvnrJicutrCrFD4cnzr1Hicmqr45k5bJTzrfKEYtdrCQw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
-### 二、登入sip（模拟电话 连接FreeSwitch）
+### 6.2、登入sip（模拟电话 连接FreeSwitch）
 
-> 下载地址：https://www.microsip.org/downloads
->
-> 连接的freeswitch一定要和SRProxy配置的一致
->
-> 添加账户  点击Menu--->Add account
+`下载地址：https://www.microsip.org/downloads`
+
+连接的freeswitch一定要和SRProxy配置的一致
+
+添加账户  点击Menu--->Add account
 
 ![image-20211129095550616](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRVbQAW8JuhW1icCgL7qPnXjqB0icjgpYVHm4ug4yDc65D732OSQryiaHPQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
@@ -370,11 +375,11 @@ max_file_size=100
 
 
 
-### 三、ARCall拨打sip
+### 6.3、ARCall拨打sip
 
-> ARCall拨打sip   使用正常流程即可，号码多少就拨打多少
->
-> 注意： 拨打设备 一定要有麦克风才可拨通
+ARCall拨打sip   使用正常流程即可，号码多少就拨打多少
+
+`注意： 拨打设备 一定要有麦克风才可拨通`
 
 
 
@@ -384,11 +389,11 @@ max_file_size=100
 
 ![image-20211116171641368](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRg7AJgbDPHmPnTaON69k5yf4nPmkN5Cdygp8ibbxZY3LGGibOQysibETnw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
-### 四、sip拨打ARCall
+### 6.4、sip拨打ARCall
 
-> sip打ARCall需要前面加个0 ，根据配置Sip转发规则而定
->
-> 注意： 拨打设备 一定要有麦克风才可拨通
+sip打ARCall需要前面加个0 ，根据配置Sip转发规则而定
+
+`注意： 拨打设备 一定要有麦克风才可拨通`
 
 ![image-20211116170713481](https://mmbiz.qpic.cn/sz_mmbiz_png/lf9n56ou2IBIUJianOGe6Qg10lQgK5NqRRFBIeb1H3ShwwdGdnib0tSfE5zVTnt2Q5M4mm25ibuqFmkaDHjLWYL7A/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 
